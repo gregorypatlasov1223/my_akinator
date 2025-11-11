@@ -11,10 +11,4 @@ enum tree_error_type
     TREE_ERROR_SIZE_MISMATCH = 6,
 };
 
-enum result_of_operation
-{
-    OPERATION_FAILED       = 0,
-    COMPLETED_SUCCESSFULLY = 1
-};
-
 #endif // TREE_ERROR_TYPE_H_

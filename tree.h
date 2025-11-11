@@ -11,6 +11,9 @@
 #define MAX_LENGTH_OF_FILENAME 256
 #define MAX_LENGTH_OF_SYSTEM_COMMAND 512
 
+#define OPERATION_FAILED       0
+#define COMPLETED_SUCCESSFULLY 1
+
 #define BASE_EDGE_LENGTH 1.0
 #define DEPTH_SPREAD_FACTOR 0.5
 #define ZERO_RANK 0
@@ -47,6 +50,12 @@ tree_error_type print_tree_node(const node_t* node);
 
 // Акинатор
 void print_menu();
+char* string_to_lower_copy(const char* string);
+int contains_negative_words(const char* string);
+void get_input_without_negatives(const char* input_message, char* buffer, size_t buffer_size);
+void validate_yes_no_input(char* answer, size_t answer_size);
+node_t* ask_questions_until_leaf(node_t* current, char* answer, size_t answer_size);
+tree_error_type learn_new_object(tree_t* tree, node_t* current_node);
 void clear_input_buffer();
 tree_error_type akinator_play(tree_t* tree);
 

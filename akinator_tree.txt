@@ -1,1 +1,1 @@
-("dog" ("corgy" nil nil) ("can swim" ("eats fish" ("shark" nil nil) ("fish" nil nil)) ("can fly" ("bird" nil nil) ("nothing" nil nil))))
+("big" ("hui" nil nil) ("nothing" nil nil))

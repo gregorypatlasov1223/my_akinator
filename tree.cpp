@@ -1,4 +1,5 @@
 #include <time.h>
+#include <ctype.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -234,23 +235,122 @@ tree_error_type tree_common_dump(tree_t* tree)
 // }
 
 
-// result_of_operation contains_negative(const char* string)
-// {
-//     if (string == NULL)
-//         return OPERATION_FAILED;
-//
-//     if (strstr(string, " no ")    != NULL ||
-//         strstr(string, " not ")   != NULL ||
-//         strstr(string, " never ") != NULL ||
-//         strstr(string, "no ")     == string ||
-//         strstr(string, "not ")    == string ||
-//         strstr(string, "never ")  == string)
-//     {
-//         return COMPLETED_SUCCESSFULLY;
-//     }
-//
-//     return OPERATION_FAILED;
-// }
+char* string_to_lower_copy(const char* string)
+{
+    if (string == NULL) // чего блять?
+        return NULL;
+
+    char* lower_string = strdup(string);
+    if (lower_string == NULL)
+        return NULL;
+
+    // Приводим всю строку к нижнему регистру
+    for (char* letter = lower_string; *letter; letter++)
+    {
+        *letter = tolower((unsigned char)*letter);
+    }
+
+    return lower_string;
+}
+
+
+int contains_negative_words(const char* string)
+{
+    if (string == NULL)
+        return OPERATION_FAILED;
+
+    const char* forbidden_phrases[] = {"do not", "is not", "does not", "did not",
+        "don't", "isn't", "doesn't", "didn't"};
+
+    size_t number_of_phrases = sizeof(forbidden_phrases) / sizeof(forbidden_phrases[0]);
+
+    char* lower_input = string_to_lower_copy(string);
+
+    if (lower_input == NULL)
+        return OPERATION_FAILED;
+
+    int found_phrases = 0;
+
+    for (size_t i = 0; i < number_of_phrases; i++)
+    {
+        if (strstr(lower_input, forbidden_phrases[i]) != NULL)
+        {
+            found_phrases = 1;
+            break;
+        }
+    }
+
+    free(lower_input);
+    return found_phrases;
+}
+
+
+void get_input_without_negatives(const char* input_message, char* buffer, size_t buffer_size)
+{
+    int valid = 0;
+
+    while (!valid)
+    {
+        if (input_message != NULL)
+            printf("%s", input_message);
+
+        fgets(buffer, (int)buffer_size, stdin);
+        buffer[strcspn(buffer, "\n")] = '\0'; // убираем символ \n который fgets() добавляет в конец введенной строки
+
+        if (!contains_negative_words(buffer))
+            valid = 1;
+        else
+            printf("Please avoid negative phrases. Try again: ");
+    }
+}
+
+
+void validate_yes_no_input(char* answer, size_t answer_size)
+{
+    while (strcmp(answer, "yes") != 0 && strcmp(answer, "no") != 0)
+    {
+        printf("Please answer only 'yes' or 'no': ");
+        get_input_without_negatives("", answer, answer_size);
+    }
+}
+
+
+node_t* ask_questions_until_leaf(node_t* current, char* answer, size_t answer_size)
+{
+    while (current -> yes != NULL && current -> no != NULL)
+    {
+        printf("%s? (yes/no): ", current -> question);
+        get_input_without_negatives("", answer, sizeof(answer));
+
+        validate_yes_no_input(answer, sizeof(answer));
+
+        if (strcmp(answer, "yes") == 0)
+            current = current -> yes;
+        else
+            current = current -> no;
+    }
+
+    return current;
+}
+
+
+tree_error_type learn_new_object(tree_t* tree, node_t* current_node)
+{
+    char new_object[MAX_LENGTH_OF_ANSWER] = {};
+    char feature[MAX_LENGTH_OF_ANSWER]    = {}; // ответ
+
+    get_input_without_negatives("Who was it?: ", new_object, sizeof(new_object));
+
+    char feature_input_message[MAX_LENGTH_OF_ANSWER] = {}; // приглашение для ввода признака
+    snprintf(feature_input_message, sizeof(feature_input_message),
+             "How is %s different? It... ", new_object);
+
+    get_input_without_negatives(feature_input_message, feature, sizeof(feature));
+    tree_split_node(tree, current_node, feature, new_object);
+
+    printf("I'll remember that!\n");
+    return TREE_NO_ERROR;
+}
 
 
 tree_error_type save_tree_to_file_recursive(const node_t* node, FILE* file)
@@ -282,6 +382,7 @@ tree_error_type save_tree_to_file(const tree_t* tree, const char* filename)
 
     save_tree_to_file_recursive(tree -> root, file);
     fprintf(file, "\n");
+
     fclose(file);
     return TREE_NO_ERROR;
 }
@@ -311,47 +412,26 @@ tree_error_type akinator_play(tree_t* tree)
         return TREE_ERROR_NULL_PTR;
 
     node_t* current = tree -> root;
-    char answer[MAX_LENGTH_OF_ANSWER] ={};
+    char answer[MAX_LENGTH_OF_ANSWER] = {};
 
-    while (current -> yes != NULL && current -> no != NULL)
+    // Проходим по дереву вопросов
+    current = ask_questions_until_leaf(current, answer, sizeof(answer));
+
+    printf("Is it %s? (yes/no): ", current -> question);
+    get_input_without_negatives("", answer, sizeof(answer));
+
+    validate_yes_no_input(answer, sizeof(answer));
+
+    if (strcmp(answer, "yes") == 0)
     {
-        printf("%s? (yes/no): ", current -> question);
-        scanf("%s", answer);
-
-        if (strcmp(answer, "yes") == 0)
-            current = current -> yes;
-        else
-            current = current -> no;
-    }
-
-        printf("Is it %s? (yes/no): ", current -> question);
-        scanf("%s", answer);
-
-        if (strcmp(answer, "yes") == 0)
-        {
-            printf("AI wins!\n");
-            return TREE_NO_ERROR;
-        }
-        else
-        {
-            char new_object[MAX_LENGTH_OF_ANSWER] = {};
-            char feature[MAX_LENGTH_OF_ANSWER]    = {};
-
-            printf("Who was it?: ");
-            scanf(" %[^\n]", new_object);
-
-            printf("How is %s different? It... ", new_object);
-            scanf(" %[^\n]", feature);
-
-            tree_split_node(tree, current, feature, new_object);
-
-            printf("I'll remember that!\n");
-            return TREE_NO_ERROR;
-        }
-
+        printf("AI wins!\n");
         return TREE_NO_ERROR;
-
     }
+    else
+        return learn_new_object(tree, current);
+
+    return TREE_NO_ERROR;
+}
 
 
 // ============================GRAPHIC_DUMP===========================================
