@@ -1,0 +1,1 @@
+("has tail" ("barks" ("dog" nil nil) ("has legs" ("snake" nil nil) ("cat" nil nil))) ("can fly" ("bird" nil nil) ("can swim" ("fish" nil nil) ("nothing" nil nil))))
