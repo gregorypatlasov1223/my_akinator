@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <stdbool.h>
 
 #include "tree.h"
 #include "tree_error_type.h"
@@ -20,6 +21,12 @@ const char* tree_error_translator(tree_error_type error)
         case TREE_ERROR_SIZE_MISMATCH:   return "Tree size doesn't match actual node count";
         default:                         return "Unknown error";
     }
+}
+
+
+bool is_leaf(node_t* node)
+{
+    return node != NULL && node -> no == NULL && node -> no == NULL;
 }
 
 
@@ -222,7 +229,7 @@ tree_error_type tree_common_dump(tree_t* tree)
 
 
 // // Функция для проверки, является ли подстрока отдельным словом
-// result_of_operation is_whole_word(const char* string, const char* word, size_t position, int word_length)
+// int is_whole_word(const char* string, const char* word, size_t position, int word_length)
 // {
 //     if (position > 0 && !isspace(string[position-1]))
 //         return OPERATION_FAILED;
@@ -238,7 +245,7 @@ tree_error_type tree_common_dump(tree_t* tree)
 char* string_to_lower_copy(const char* string)
 {
     if (string == NULL)
-        return NULL; // ок или переделать?
+        return NULL;
 
     char* lower_string = strdup(string);
     if (lower_string == NULL)
@@ -287,7 +294,10 @@ int contains_negative_words(const char* string)
 
 void get_input_without_negatives(const char* input_message, char* buffer, size_t buffer_size)
 {
-    int valid = 0;
+    assert(buffer        != NULL);
+    assert(input_message != NULL);
+
+    bool valid = false;
 
     while (!valid)
     {
@@ -295,10 +305,11 @@ void get_input_without_negatives(const char* input_message, char* buffer, size_t
             printf("%s", input_message);
 
         fgets(buffer, (int)buffer_size, stdin);
+        // TODO: strlen here
         buffer[strcspn(buffer, "\n")] = '\0'; // убираем символ \n который fgets() добавляет в конец введенной строки
 
         if (!contains_negative_words(buffer))
-            valid = 1;
+            valid = true;
         else
             printf("Please avoid negative phrases. Try again: ");
     }
@@ -317,6 +328,9 @@ void validate_yes_no_input(char* answer, size_t answer_size)
 
 node_t* ask_questions_until_leaf(node_t* current, char* answer, size_t answer_size)
 {
+    assert(answer  != NULL);
+    assert(current != NULL);
+
     while (current -> yes != NULL && current -> no != NULL)
     {
         printf("%s? (yes/no): ", current -> question);
@@ -336,6 +350,9 @@ node_t* ask_questions_until_leaf(node_t* current, char* answer, size_t answer_si
 
 tree_error_type learn_new_object(tree_t* tree, node_t* current_node)
 {
+    assert(tree         != NULL); // по-хорошему верификатор
+    assert(current_node != NULL);
+
     char new_object[MAX_LENGTH_OF_ANSWER] = {};
     char feature[MAX_LENGTH_OF_ANSWER]    = {}; // ответ
 
@@ -394,7 +411,8 @@ void print_menu()
     printf("1. Play game\n");
     printf("2. Save tree to file\n");
     printf("3. Show tree structure\n");
-    printf("4. Exit\n");
+    printf("4. Give definition\n");
+    printf("5. Exit\n");
     printf("Choose option: ");
 }
 
@@ -402,7 +420,159 @@ void print_menu()
 void clear_input_buffer()
 {
     int symbol = 0;
-    while ((symbol = getchar()) != '\n' && symbol != EOF) { }
+    while ((symbol = getchar()) != '\n' && symbol != EOF);
+}
+
+
+node_t* find_leaf_by_phrase(node_t* node, const char* phrase)
+{
+    if (node == NULL)
+        return NULL;
+
+    if (is_leaf(node))
+    {
+        char* phrase_lower      = string_to_lower_copy(phrase);
+        char* node_phrase_lower = string_to_lower_copy(node -> question);
+
+        if (phrase_lower == NULL || node_phrase_lower == NULL)
+        {
+            free(node_phrase_lower);
+            free(phrase_lower);
+
+            return NULL;
+        }
+
+        int compare_result = strcmp(phrase_lower, node_phrase_lower);
+        free(node_phrase_lower);
+        free(phrase_lower);
+
+        if (compare_result == 0)
+            return node;
+    }
+
+    node_t* yes_result = find_leaf_by_phrase(node -> yes, phrase);
+    if (yes_result != NULL)
+        return yes_result;
+
+    node_t* no_result = find_leaf_by_phrase(node -> no, phrase);
+    return no_result;
+}
+
+
+tree_error_type find_and_validate_object(tree_t* tree, const char* object, node_t** found_node)
+{
+    if (tree == NULL || object == NULL)
+    {
+        printf("Error: No tree or object specified.\n");
+        return TREE_ERROR_NULL_PTR;
+    }
+
+    *found_node = find_leaf_by_phrase(tree -> root, object);
+    if (*found_node == NULL)
+    {
+        printf("Object \"%s\" not found in the database.\n", object);
+        return TREE_NO_ERROR;
+    }
+
+    return TREE_NO_ERROR;
+}
+
+
+tree_error_type build_path_from_leaf_to_root(node_t* leaf, path_step* path, int* step_count)
+{
+    *step_count = 0;
+    node_t* current = leaf;
+
+    // Поднимаемся от листа к корню
+    while (current -> parent != NULL && *step_count < MAX_PATH_DEPTH)
+    {
+        node_t* parent = current -> parent;
+
+        if (parent -> yes == current)
+        {
+            path[*step_count].question_node = parent;
+            path[*step_count].answer = true;
+        }
+        else if (parent -> no == current)
+        {
+            path[*step_count].question_node = parent;
+            path[*step_count].answer = false;
+        }
+        else
+        {
+            printf("Error: The tree structure is broken.\n");
+            return TREE_ERROR_STRUCTURE;
+        }
+
+        (*step_count)++;
+        current = parent;
+    }
+
+    return TREE_NO_ERROR;
+}
+
+
+void print_definition(const path_step* path, int step_count, const node_t* found_object)
+{
+    printf("The definition:\n");
+    for (int i = step_count - 1; i >= 0; i--)
+    {
+        if (path[i].answer)
+            printf("%s", path[i].question_node -> question);
+        else
+            printf("not %s", path[i].question_node -> question);
+
+        if (i > 0)
+            printf(", ");
+    }
+    printf("\n");
+}
+
+
+tree_error_type print_object_path(tree_t* tree, const char* object)
+{
+    assert(tree   != NULL);
+    assert(object != NULL);
+
+    node_t* found = NULL;
+    tree_error_type validation_result = find_and_validate_object(tree, object, &found);
+
+    if (validation_result != TREE_NO_ERROR)
+        return validation_result;
+
+    path_step path[MAX_PATH_DEPTH] = {};
+    int step_count = 0;
+
+    tree_error_type path_result = build_path_from_leaf_to_root(found, path, &step_count);
+    if (path_result != TREE_NO_ERROR)
+        return path_result;
+
+    if (step_count == 0)
+    {
+        printf("This is the root object: %s\n", found -> question);
+    }
+    else
+    {
+        print_definition(path, step_count, found);
+    }
+
+    return TREE_NO_ERROR;
+}
+
+
+void give_object_definition(tree_t* tree)
+{
+    if (tree == NULL || tree -> root == NULL)
+    {
+        printf("The tree is not initialized!\n");
+        return;
+    }
+
+    char object_name[MAX_LENGTH_OF_ANSWER] = {};
+    get_input_without_negatives("Enter the name of the object to search for: ",
+                                 object_name, sizeof(object_name));
+
+    print_object_path(tree, object_name);
 }
 
 
@@ -437,6 +607,8 @@ tree_error_type akinator_play(tree_t* tree)
 
 void write_dump_header(FILE* htm_file, time_t now)
 {
+    assert(htm_file != NULL);
+
     fprintf(htm_file, "<div style='border:2px solid #ccc; margin:10px; padding:15px; background:#f9f9f9;'>\n");
     fprintf(htm_file, "<h2 style='color:#333;'>Tree Dump at %s</h2>\n", ctime(&now));
 }
@@ -456,11 +628,12 @@ void write_information_about_tree(FILE* htm_file, tree_t* tree)
 
 tree_error_type write_tree_nodes_table_recursive(node_t* node, FILE* htm_file)
 {
+    assert(htm_file != NULL);
     if (node == NULL)
         return TREE_NO_ERROR;
 
     fprintf(htm_file, "<tr><td>%p</td><td>%s</td><td>%p</td><td>%p</td><td>%p</td></tr>\n",
-        (void*)node, node -> question, (void*)node -> yes, (void*)node -> no, (void*)node -> parent);
+                      (void*)node, node -> question, (void*)node -> yes, (void*)node -> no, (void*)node -> parent);
 
     tree_error_type result = TREE_NO_ERROR;
 
@@ -515,7 +688,7 @@ void format_node_part(char* part_buffer, size_t buffer_size, const char* label, 
 //         return TREE_NO_ERROR;
 //
 //     fprintf(dot_file, "    node_%p:%s -> node_%p [color=%s, minlen=%.1f, label=\"%s\"];\n",
-//            (void*)parent_node, port, (void*)child_node, colour, distance, label);
+//                       (void*)parent_node, port, (void*)child_node, colour, distance, label);
 //
 //     return TREE_NO_ERROR;
 // }
@@ -536,21 +709,21 @@ tree_error_type create_dot_tree_recursive(tree_t* tree, node_t* node, FILE* dot_
     format_node_part(no_part, sizeof(no_part), "NO", node -> no);
 
     fprintf(dot_file, "    node_%p [label=\"{%s | {<f0> %s | <f1> %s}}\", shape=%s, style=filled, fillcolor=%s, color=black];\n",
-           (void*)node, node -> question, yes_part, no_part, shape, fill_color);
+                      (void*)node, node -> question, yes_part, no_part, shape, fill_color);
 
     double distance = BASE_EDGE_LENGTH + (level * DEPTH_SPREAD_FACTOR); // distance - min расстояние между узлом и листом
 
     if (node -> yes != NULL)
     {
         fprintf(dot_file, "    node_%p:<f0> -> node_%p [colour=green, minlen=%.1f, label=\"YES\"];\n",
-                (void*)node, (void*)node -> yes, distance);
+                          (void*)node, (void*)node -> yes, distance);
         create_dot_tree_recursive(tree, node -> yes, dot_file, level + 1);
     }
 
     if (node -> no != NULL)
     {
         fprintf(dot_file, "    node_%p:<f1> -> node_%p [color=red, minlen=%.1f, label=\"NO\"];\n",
-                (void*)node, (void*)node -> no, distance);
+                          (void*)node, (void*)node -> no, distance);
         create_dot_tree_recursive(tree, node -> no, dot_file, level + 1);
     }
 
@@ -568,6 +741,7 @@ tree_error_type create_dot_file_tree(tree_t* tree, const char* filename)
     if (dot_file == NULL)
         return TREE_ERROR_OPENING_FILE;
 
+    // TODO: create_tree_dot_header
     fprintf(dot_file, "digraph AkinatorTree {\n");
     fprintf(dot_file, "    rankdir=TB;\n");
     fprintf(dot_file, "    node [shape=Mrecord, color=black];\n\n");
@@ -713,6 +887,8 @@ tree_error_type tree_dump(tree_t* tree, const char* filename)
 
 tree_error_type initialization_of_tree_log(const char* filename)
 {
+    assert(filename != NULL);
+
     char htm_filename[MAX_LENGTH_OF_FILENAME] = {};
     snprintf(htm_filename, sizeof(htm_filename), "%s.htm", filename);
 
@@ -741,6 +917,8 @@ tree_error_type initialization_of_tree_log(const char* filename)
 
 tree_error_type close_tree_log(const char* filename)
 {
+    assert(filename != NULL);
+
     char htm_filename[MAX_LENGTH_OF_FILENAME] = {};
     snprintf(htm_filename, sizeof(htm_filename), "%s.htm", filename);
 

@@ -8,6 +8,7 @@
 
 #define MAX_LENGTH_OF_ADDRESS 32
 #define MAX_LENGTH_OF_ANSWER 256
+#define MAX_PATH_DEPTH 256
 #define MAX_LENGTH_OF_FILENAME 256
 #define MAX_LENGTH_OF_SYSTEM_COMMAND 512
 
@@ -18,19 +19,25 @@
 #define DEPTH_SPREAD_FACTOR 0.5
 #define ZERO_RANK 0
 
-typedef struct node_t
+struct node_t
 {
     char* question;
     struct node_t* yes;
     struct node_t* no;
     struct node_t* parent;
-} node_t;
+};
 
-typedef struct tree_t
+struct tree_t
 {
     node_t* root;
     size_t size;
-} tree_t;
+};
+
+struct path_step
+{
+    node_t* question_node;
+    bool answer; // true да, false нет
+};
 
 // Основные функции дерева
 tree_error_type tree_constructor(tree_t* tree);
@@ -39,9 +46,16 @@ tree_error_type tree_verify(tree_t* tree);
 tree_error_type tree_common_dump(tree_t* tree);
 
 // Функции работы с узлами
+bool is_leaf(node_t* node);
 tree_error_type tree_create_node(node_t** node_ptr, const char* phrase);
 tree_error_type tree_set_parent(node_t* child, node_t* parent);
 tree_error_type tree_split_node(tree_t* tree, node_t* old_node, const char* feature, const char* new_object);
+node_t* find_leaf_by_phrase(node_t* node, const char* phrase);
+tree_error_type find_and_validate_object(tree_t* tree, const char* object, node_t** found_node);
+tree_error_type build_path_from_leaf_to_root(node_t* leaf, path_step* path, int* step_count);
+void print_definition(const path_step* path, int step_count, const node_t* found_object);
+tree_error_type show_object_path(tree_t* tree, const char* object);
+void give_object_definition(tree_t* tree);
 void format_node_part(char* part_buffer, size_t buffer_size, const char* label, node_t* child_node);
 
 // Функции сохранения и вывода

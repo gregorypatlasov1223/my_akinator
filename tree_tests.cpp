@@ -19,10 +19,10 @@ void test_akinator_interactive()
         node_t* current = tree.root;
         tree_split_node(&tree, current, "has tail", "cat");
 
-        node_t* cat_node = tree.root->yes;
+        node_t* cat_node = tree.root -> yes;
         tree_split_node(&tree, cat_node, "barks", "dog");
 
-        node_t* nothing_node = tree.root->no;
+        node_t* nothing_node = tree.root -> no;
         tree_split_node(&tree, nothing_node, "can fly", "bird");
     }
 
