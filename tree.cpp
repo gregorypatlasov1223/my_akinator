@@ -237,8 +237,8 @@ tree_error_type tree_common_dump(tree_t* tree)
 
 char* string_to_lower_copy(const char* string)
 {
-    if (string == NULL) // чего блять?
-        return NULL;
+    if (string == NULL)
+        return NULL; // ок или переделать?
 
     char* lower_string = strdup(string);
     if (lower_string == NULL)
@@ -320,9 +320,9 @@ node_t* ask_questions_until_leaf(node_t* current, char* answer, size_t answer_si
     while (current -> yes != NULL && current -> no != NULL)
     {
         printf("%s? (yes/no): ", current -> question);
-        get_input_without_negatives("", answer, sizeof(answer));
+        get_input_without_negatives("", answer, answer_size);
 
-        validate_yes_no_input(answer, sizeof(answer));
+        validate_yes_no_input(answer, answer_size);
 
         if (strcmp(answer, "yes") == 0)
             current = current -> yes;
@@ -433,7 +433,6 @@ tree_error_type akinator_play(tree_t* tree)
     return TREE_NO_ERROR;
 }
 
-
 // ============================GRAPHIC_DUMP===========================================
 
 void write_dump_header(FILE* htm_file, time_t now)
@@ -450,7 +449,7 @@ void write_information_about_tree(FILE* htm_file, tree_t* tree)
 
     fprintf(htm_file, "<div style='margin-bottom:15px;'>\n");
     fprintf(htm_file, "<p><b>Tree size:</b> %zu</p>\n", tree -> size);
-    fprintf(htm_file, "<p><b>Root address:</b> %p</p>\n", (void*)tree -> root); // для чего тут void
+    fprintf(htm_file, "<p><b>Root address:</b> %p</p>\n", (void*)tree -> root);
     fprintf(htm_file, "</div>\n");
 }
 
@@ -496,6 +495,32 @@ int is_root_node(tree_t* tree, node_t* node)
 }
 
 
+void format_node_part(char* part_buffer, size_t buffer_size, const char* label, node_t* child_node)
+{
+    assert(label       != NULL);
+    assert(part_buffer != NULL);
+
+    if (child_node == NULL)
+        snprintf(part_buffer, buffer_size, "O");
+    else
+        snprintf(part_buffer, buffer_size, "%s: %p", label, (void*)child_node);
+}
+
+
+// tree_error_type create_dot_edge(FILE* dot_file, node_t* parent_node, node_t* child_node,
+//                                const char* port, const char* colour, const char* label,
+//                                double distance, tree_t* tree, int level)
+// {
+//     if (child_node == NULL)
+//         return TREE_NO_ERROR;
+//
+//     fprintf(dot_file, "    node_%p:%s -> node_%p [color=%s, minlen=%.1f, label=\"%s\"];\n",
+//            (void*)parent_node, port, (void*)child_node, colour, distance, label);
+//
+//     return TREE_NO_ERROR;
+// }
+
+
 tree_error_type create_dot_tree_recursive(tree_t* tree, node_t* node, FILE* dot_file, int level)
 {
     if (node == NULL)
@@ -504,23 +529,20 @@ tree_error_type create_dot_tree_recursive(tree_t* tree, node_t* node, FILE* dot_
     const char* fill_color = is_root_node(tree, node) ? "lightblue" : "white";
     const char* shape = "Mrecord";
 
-    char yes_part[MAX_LENGTH_OF_ADDRESS] = "O";
-    char no_part[MAX_LENGTH_OF_ADDRESS]  = "O";
+    char yes_part[MAX_LENGTH_OF_ADDRESS] = {};
+    char no_part[MAX_LENGTH_OF_ADDRESS]  = {};
 
-    if (node -> yes != NULL)
-        snprintf(yes_part, sizeof(yes_part), "YES: %p", (void*)node -> yes);
-
-    if (node -> no != NULL)
-        snprintf(no_part, sizeof(no_part), "NO: %p", (void*)node -> no);
+    format_node_part(yes_part, sizeof(yes_part), "YES", node -> yes);
+    format_node_part(no_part, sizeof(no_part), "NO", node -> no);
 
     fprintf(dot_file, "    node_%p [label=\"{%s | {<f0> %s | <f1> %s}}\", shape=%s, style=filled, fillcolor=%s, color=black];\n",
            (void*)node, node -> question, yes_part, no_part, shape, fill_color);
 
     double distance = BASE_EDGE_LENGTH + (level * DEPTH_SPREAD_FACTOR); // distance - min расстояние между узлом и листом
 
-     if (node -> yes != NULL)
+    if (node -> yes != NULL)
     {
-        fprintf(dot_file, "    node_%p:<f0> -> node_%p [color=green, minlen=%.1f, label=\"YES\"];\n",
+        fprintf(dot_file, "    node_%p:<f0> -> node_%p [colour=green, minlen=%.1f, label=\"YES\"];\n",
                 (void*)node, (void*)node -> yes, distance);
         create_dot_tree_recursive(tree, node -> yes, dot_file, level + 1);
     }
@@ -564,6 +586,22 @@ tree_error_type create_dot_file_tree(tree_t* tree, const char* filename)
 }
 
 
+tree_error_type execute_graphviz_command(const char* input_file, const char* output_file)
+{
+    assert(input_file  != NULL);
+    assert(output_file != NULL);
+
+    char command[MAX_LENGTH_OF_SYSTEM_COMMAND] = {};
+    snprintf(command, sizeof(command), "dot -Tsvg \"%s\" -o \"%s\"", input_file, output_file);
+
+    int result = system(command);
+    if (result != 0)
+        return TREE_ERROR_OPENING_FILE;
+
+    return TREE_NO_ERROR;
+}
+
+
 tree_error_type create_graph_visualization_tree(tree_t* tree, FILE* htm_file, const char* folder_name, time_t now)
 {
     assert(tree        != NULL);
@@ -583,11 +621,9 @@ tree_error_type create_graph_visualization_tree(tree_t* tree, FILE* htm_file, co
     if (dot_result != TREE_NO_ERROR)
         return dot_result;
 
-    char command[MAX_LENGTH_OF_SYSTEM_COMMAND] = {};
-    snprintf(command, sizeof(command), "dot -Tsvg %s -o %s", temp_dot, temp_svg);
-    int result = system(command);
+    tree_error_type execution_result = execute_graphviz_command(temp_dot, temp_svg);
 
-    if (result == 0)
+    if (execution_result == 0)
     {
         fprintf(htm_file, "<div style='text-align:center;'>\n");
         fprintf(htm_file, "<img src='%s' style='max-width:100%%; border:1px solid #ddd;'>\n", temp_svg);
@@ -621,18 +657,44 @@ tree_error_type tree_dump_to_htm(tree_t* tree, FILE* htm_file, const char* folde
 }
 
 
+tree_error_type make_folder_name(const char* base_name, char* folder_name, size_t folder_name_size)
+{
+    assert(base_name   != NULL);
+    assert(folder_name != NULL);
+
+    ssize_t written = snprintf(folder_name, folder_name_size, "%s_dump", base_name);
+    if (written < 0 || (size_t)written >= folder_name_size)
+        return TREE_ERROR_SIZE_MISMATCH;
+
+    return TREE_NO_ERROR;
+}
+
+
+tree_error_type make_directory(const char* folder_name)
+{
+    if (folder_name == NULL)
+        return TREE_ERROR_NULL_PTR;
+
+    char command[MAX_LENGTH_OF_SYSTEM_COMMAND] = {};
+    snprintf(command, sizeof(command), "mkdir -p \"%s\"", folder_name);
+
+    int result = system(command);
+    if (result != 0)
+        return TREE_ERROR_OPENING_FILE;
+
+    return TREE_NO_ERROR;
+}
+
+
 tree_error_type tree_dump(tree_t* tree, const char* filename)
 {
     assert(tree     != NULL);
     assert(filename != NULL);
 
     char folder_name[MAX_LENGTH_OF_FILENAME] = {};
-    snprintf(folder_name, sizeof(folder_name), "%s_dump", filename);
 
-    char command[MAX_LENGTH_OF_SYSTEM_COMMAND] = {};
-    // флаг -p гарантирует, что папка создастся даже если родительские директории не существуют
-    snprintf(command, sizeof(command), "mkdir -p %s", folder_name); // mkdir - это команда для создания директорий в OC
-    system(command);
+    make_folder_name(filename, folder_name, sizeof(folder_name));
+    make_directory(folder_name);
 
     char htm_filename[MAX_LENGTH_OF_FILENAME] = {};
     snprintf(htm_filename, sizeof(htm_filename), "%s.htm", filename);

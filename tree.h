@@ -42,6 +42,7 @@ tree_error_type tree_common_dump(tree_t* tree);
 tree_error_type tree_create_node(node_t** node_ptr, const char* phrase);
 tree_error_type tree_set_parent(node_t* child, node_t* parent);
 tree_error_type tree_split_node(tree_t* tree, node_t* old_node, const char* feature, const char* new_object);
+void format_node_part(char* part_buffer, size_t buffer_size, const char* label, node_t* child_node);
 
 // Функции сохранения и вывода
 tree_error_type save_tree_to_file_recursive(const node_t* node, FILE* file);
@@ -72,6 +73,9 @@ size_t count_nodes_recursive(node_t* node);
 // Функции для дампа
 void write_dump_header(FILE* htm_file, time_t now);
 void write_information_about_tree(FILE* htm_file, tree_t* tree);
+tree_error_type execute_graphviz_command(const char* input_file, const char* output_file);
+tree_error_type make_folder_name(const char* base_name, char* folder_name, size_t folder_name_size);
+tree_error_type make_directory(const char* folder_name);
 tree_error_type write_tree_nodes_table_recursive(node_t* node, FILE* htm_file);
 void write_tree_nodes_table(FILE* htm_file, tree_t* tree);
 int is_root_node(tree_t* tree, node_t* node);
