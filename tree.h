@@ -53,8 +53,8 @@ tree_error_type tree_split_node(tree_t* tree, node_t* old_node, const char* feat
 node_t* find_leaf_by_phrase(node_t* node, const char* phrase);
 tree_error_type find_and_validate_object(tree_t* tree, const char* object, node_t** found_node);
 tree_error_type build_path_from_leaf_to_root(node_t* leaf, path_step* path, int* step_count);
-void print_definition(const path_step* path, int step_count, const node_t* found_object);
-tree_error_type show_object_path(tree_t* tree, const char* object);
+void print_definition(const path_step* path, int step_count);
+tree_error_type print_object_path(tree_t* tree, const char* object);
 void give_object_definition(tree_t* tree);
 void format_node_part(char* part_buffer, size_t buffer_size, const char* label, node_t* child_node);
 
@@ -62,6 +62,8 @@ void format_node_part(char* part_buffer, size_t buffer_size, const char* label, 
 tree_error_type save_tree_to_file_recursive(const node_t* node, FILE* file);
 tree_error_type save_tree_to_file(const tree_t* tree, const char* filename);
 tree_error_type print_tree_node(const node_t* node);
+tree_error_type read_node(const char** position, node_t** node);
+tree_error_type load_tree_from_file(tree_t* tree, const char* filename);
 
 // Акинатор
 void print_menu();
@@ -83,6 +85,7 @@ tree_error_type close_tree_log(const char* filename);
 const char* tree_error_translator(tree_error_type error);
 tree_error_type tree_destroy_recursive(node_t* node);
 size_t count_nodes_recursive(node_t* node);
+size_t get_file_size(FILE *file);
 
 // Функции для дампа
 void write_dump_header(FILE* htm_file, time_t now);

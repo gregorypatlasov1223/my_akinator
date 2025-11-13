@@ -10,6 +10,7 @@ enum tree_error_type
     TREE_ERROR_OPENING_FILE  = 5,
     TREE_ERROR_SIZE_MISMATCH = 6,
     TREE_ERROR_STRUCTURE     = 7,
+    TREE_ERROR_SYNTAX        = 8,
 };
 
 #endif // TREE_ERROR_TYPE_H_

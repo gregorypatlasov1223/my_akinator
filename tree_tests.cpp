@@ -7,34 +7,6 @@
 #include "tree.h"
 #include "tree_error_type.h"
 
-void test_akinator_interactive()
-{
-    tree_t tree = {};
-    tree_constructor(&tree);
-
-    printf("\n=== Testing Akinator Interactive Game ===\n");
-
-    printf("Building basic tree...\n");
-    {
-        node_t* current = tree.root;
-        tree_split_node(&tree, current, "has tail", "cat");
-
-        node_t* cat_node = tree.root -> yes;
-        tree_split_node(&tree, cat_node, "barks", "dog");
-
-        node_t* nothing_node = tree.root -> no;
-        tree_split_node(&tree, nothing_node, "can fly", "bird");
-    }
-
-    printf("Basic tree built with %zu elements\n", tree.size);
-    tree_common_dump(&tree);
-
-    printf("\n=== Simulating Game Session ===\n");
-
-    tree_destructor(&tree);
-}
-
-
 void test_akinator()
 {
     tree_t tree = {};
@@ -98,8 +70,8 @@ void test_akinator()
     tree_error_type verify_result = tree_verify(&tree);
     printf("Tree verification: %s\n", tree_error_translator(verify_result));
 
-    save_tree_to_file(&tree, "akinator_test_tree.txt");
-    printf("Tree saved to akinator_test_tree.txt\n");
+    save_tree_to_file(&tree, "akinator_database.txt");
+    printf("Tree saved to akinator_database.txt\n");
 
     close_tree_log(folder_name);
     tree_destructor(&tree);
@@ -107,11 +79,5 @@ void test_akinator()
     printf("=== Akinator Test Completed ===\n");
 }
 
-
-void all_tests()
-{
-    test_akinator();
-    test_akinator_interactive();
-}
 
 

@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <sys/stat.h>
 
 #include "tree.h"
 #include "tree_error_type.h"
@@ -19,6 +20,8 @@ const char* tree_error_translator(tree_error_type error)
         case TREE_ERROR_CONSTRUCTOR:     return "Error in the constructor";
         case TREE_ERROR_OPENING_FILE:    return "Error when opening a file";
         case TREE_ERROR_SIZE_MISMATCH:   return "Tree size doesn't match actual node count";
+        case TREE_ERROR_STRUCTURE:       return "The tree structure is broken";
+        case TREE_ERROR_SYNTAX:          return "Get unexpected symbol";
         default:                         return "Unknown error";
     }
 }
@@ -26,7 +29,7 @@ const char* tree_error_translator(tree_error_type error)
 
 bool is_leaf(node_t* node)
 {
-    return node != NULL && node -> no == NULL && node -> no == NULL;
+    return node != NULL && node -> no == NULL && node -> yes == NULL;
 }
 
 
@@ -398,9 +401,9 @@ tree_error_type save_tree_to_file(const tree_t* tree, const char* filename)
         return TREE_ERROR_OPENING_FILE;
 
     save_tree_to_file_recursive(tree -> root, file);
-    fprintf(file, "\n");
 
     fclose(file);
+
     return TREE_NO_ERROR;
 }
 
@@ -512,7 +515,7 @@ tree_error_type build_path_from_leaf_to_root(node_t* leaf, path_step* path, int*
 }
 
 
-void print_definition(const path_step* path, int step_count, const node_t* found_object)
+void print_definition(const path_step* path, int step_count)
 {
     printf("The definition:\n");
     for (int i = step_count - 1; i >= 0; i--)
@@ -553,7 +556,7 @@ tree_error_type print_object_path(tree_t* tree, const char* object)
     }
     else
     {
-        print_definition(path, step_count, found);
+        print_definition(path, step_count);
     }
 
     return TREE_NO_ERROR;
@@ -573,6 +576,187 @@ void give_object_definition(tree_t* tree)
                                  object_name, sizeof(object_name));
 
     print_object_path(tree, object_name);
+}
+
+
+tree_error_type read_node(const char** position, node_t** node)
+{
+    assert(position  != NULL);
+    assert(*position != NULL);
+
+    if (node == NULL)
+        return TREE_ERROR_NULL_PTR;
+
+    while (isspace((unsigned char)**position))
+        (*position)++;
+
+    if (**position == '(')
+    {
+        (*position)++;
+
+        while (isspace((unsigned char)**position))
+            (*position)++;
+
+        if (**position != '"')
+            return TREE_ERROR_SYNTAX;
+        (*position)++;
+
+        int chars_read = 0;
+        char phrase[MAX_LENGTH_OF_ANSWER] = {};
+
+        if (sscanf(*position, "%[^\"]%n", phrase, &chars_read) != 1)
+            return TREE_ERROR_SYNTAX;
+
+        (*position) += chars_read;
+
+        if (**position != '"')
+            return TREE_ERROR_SYNTAX;
+        (*position)++;
+
+        while (isspace((unsigned char)**position))
+            (*position)++;
+
+        tree_error_type result = tree_create_node(node, phrase);
+        if (result != TREE_NO_ERROR)
+            return result;
+
+        result = read_node(position, &((*node)->yes));
+        if (result != TREE_NO_ERROR)
+        {
+            tree_destroy_recursive(*node);
+            *node = NULL;
+            return result;
+        }
+
+        if ((*node)->yes != NULL)
+            (*node)->yes->parent = *node;
+
+        while (isspace((unsigned char)**position))
+            (*position)++;
+
+        result = read_node(position, &((*node)->no));
+        if (result != TREE_NO_ERROR)
+        {
+            tree_destroy_recursive(*node);
+            *node = NULL;
+            return result;
+        }
+
+        if ((*node)->no != NULL)
+            (*node)->no->parent = *node;
+
+
+        while (isspace((unsigned char)**position))
+            (*position)++;
+
+        if (**position != ')')
+            return TREE_ERROR_SYNTAX;
+        (*position)++;
+
+        return TREE_NO_ERROR;
+    }
+
+    while (isspace((unsigned char)**position))
+        (*position)++;
+
+    if (strncmp(*position, "nil", 3) == 0)
+    {
+        *position += 3;
+        *node = NULL;
+        return TREE_NO_ERROR;
+    }
+
+    return TREE_ERROR_SYNTAX;
+}
+
+
+size_t get_file_size(FILE *file)
+{
+    assert(file != NULL);
+
+    struct stat stat_buffer = {};
+
+    int file_descriptor = fileno(file);
+    if (file_descriptor == -1)
+    {
+        fprintf(stderr, "Error: Cannot get file descriptor\n");
+        return 0;
+    }
+
+    if (fstat(file_descriptor, &stat_buffer) != 0)
+    {
+        fprintf(stderr, "Error: Cannot get file stats\n");
+        return 0;
+    }
+
+    return (size_t)stat_buffer.st_size;
+}
+
+
+tree_error_type load_tree_from_file(tree_t* tree, const char* filename)
+{
+    assert(tree     != NULL);
+    assert(filename != NULL);
+
+    FILE* file = fopen(filename, "r");
+    if (file == NULL)
+        return TREE_ERROR_OPENING_FILE;
+
+    size_t file_size = get_file_size(file);
+    if (file_size == 0)
+    {
+        fclose(file);
+        printf("Error: File is empty or cannot get file size\n");
+        return TREE_ERROR_OPENING_FILE;
+    }
+
+    char* buffer = (char*)calloc(file_size + 1, sizeof(char)); // +1 для \0
+    if (buffer == NULL)
+    {
+        fclose(file);
+        return TREE_ERROR_ALLOCATION;
+    }
+
+    size_t bytes_read = fread(buffer, sizeof(char), file_size, file);
+    if (bytes_read != file_size)
+        printf("Warning: Read only %zu bytes out of %zu\n", bytes_read, file_size);
+
+    buffer[bytes_read] = '\0';
+    fclose(file);
+
+    const char* position = buffer;
+    node_t* new_root = NULL; // корень нового дерева
+
+    tree_error_type result = read_node(&position, &new_root);
+
+    if (result == TREE_NO_ERROR)
+    {
+        while (isspace((unsigned char)*position))
+            position++;
+
+        if (*position != '\0')
+        {
+            tree_destroy_recursive(new_root);
+            result = TREE_ERROR_SYNTAX;
+            printf("Syntax error: extra characters after tree: '%s'\n", position);
+        }
+    }
+
+    free(buffer);
+
+    if (result != TREE_NO_ERROR)
+    {
+        printf("Error loading tree from file: %s\n", tree_error_translator(result));
+        return result;
+    }
+
+    // заменяем старое дерево новым
+    tree_destructor(tree);
+    tree -> root = new_root;
+    tree -> size = count_nodes_recursive(new_root);
+
+    printf("Tree successfully loaded from %s (%zu nodes)\n", filename, tree -> size);
+    return TREE_NO_ERROR;
 }
 
 
@@ -932,8 +1116,4 @@ tree_error_type close_tree_log(const char* filename)
 
     return TREE_NO_ERROR;
 }
-
-
-
-
 

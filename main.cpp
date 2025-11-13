@@ -7,21 +7,35 @@
 
 int main()
 {
+    printf("=== Creating initial database ===\n");
+    test_akinator();
+    printf("=== Database created successfully ===\n\n");
+
     tree_t tree = {};
     tree_error_type result = tree_constructor(&tree);
 
-    if (result != TREE_NO_ERROR)
-    {
-        printf("Error initializing tree: %s\n", tree_error_translator(result));
-        return result;
-    }
+    const char* default_database = "akinator_database.txt";
 
-    printf("=== Welcome to Akinator! ===\n");
-    printf("Think of an animal or object, and I will try to guess it!\n");
+    tree_error_type load_result = load_tree_from_file(&tree, default_database);
+
+    if (load_result != TREE_NO_ERROR)
+    {
+        printf("Database isn't found. Creating new database...");
+        result = save_tree_to_file(&tree, default_database);
+
+        if (result != TREE_NO_ERROR)
+        {
+            printf("Error creating database: %s\n", tree_error_translator(result));
+            tree_destructor(&tree);
+            return result;
+        }
+        printf("New database created successfully!\n");
+    }
+    else
+        printf("Database loaded successfully! (%zu nodes)\n", tree.size);
 
     int choice = 0;
     char filename[MAX_LENGTH_OF_FILENAME] = "akinator_tree.txt";
-
 
     do
     {
@@ -33,7 +47,7 @@ int main()
             choice = 0;  //сбрасываем choice
             continue;
         }
-    clear_input_buffer();
+        clear_input_buffer();
 
         switch (choice)
         {
@@ -79,7 +93,10 @@ int main()
                 break;
         }
 
-    } while (choice != 4);
+    } while (choice != 5);
+
+    printf("Saving database before exit...\n");
+    save_tree_to_file(&tree, default_database);
 
     tree_destructor(&tree);
     return 0;
