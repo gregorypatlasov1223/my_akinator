@@ -483,6 +483,9 @@ tree_error_type find_and_validate_object(tree_t* tree, const char* object, node_
 
 tree_error_type build_path_from_leaf_to_root(node_t* leaf, path_step* path, int* step_count)
 {
+    if (leaf == NULL)
+        return TREE_ERROR_NULL_PTR;
+
     *step_count = 0;
     node_t* current = leaf;
 
@@ -542,6 +545,13 @@ tree_error_type print_object_path(tree_t* tree, const char* object)
 
     if (validation_result != TREE_NO_ERROR)
         return validation_result;
+
+    // Добавляем эту проверку
+    if (found == NULL)
+    {
+        printf("Object \"%s\" not found in the database.\n", object);
+        return TREE_NO_ERROR;
+    }
 
     path_step path[MAX_PATH_DEPTH] = {};
     int step_count = 0;
