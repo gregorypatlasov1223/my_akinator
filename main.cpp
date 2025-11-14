@@ -85,6 +85,10 @@ int main()
                 break;
 
             case 5:
+                compare_two_objects(&tree);
+                break;
+
+            case 6:
                 printf("Goodbye!\n");
                 break;
 
@@ -93,7 +97,7 @@ int main()
                 break;
         }
 
-    } while (choice != 5);
+    } while (choice != 6);
 
     printf("Saving database before exit...\n");
     save_tree_to_file(&tree, default_database);

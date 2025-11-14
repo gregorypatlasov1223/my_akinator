@@ -294,7 +294,6 @@ void get_input_without_negatives(const char* input_message, char* buffer, size_t
             printf("%s", input_message);
 
         fgets(buffer, (int)buffer_size, stdin);
-        // TODO: strlen here
         buffer[strcspn(buffer, "\n")] = '\0'; // убираем символ \n который fgets() добавляет в конец введенной строки
 
         if (!contains_negative_words(buffer))
@@ -401,7 +400,8 @@ void print_menu()
     printf("2. Save tree to file\n");
     printf("3. Show tree structure\n");
     printf("4. Give definition\n");
-    printf("5. Exit\n");
+    printf("5. Compare two objects\n");
+    printf("6. Exit\n");
     printf("Choose option: ");
 }
 
@@ -481,20 +481,18 @@ tree_error_type build_path_from_leaf_to_root(node_t* leaf, path_step* path, int*
         node_t* parent = current -> parent;
 
         if (parent -> yes == current)
-        {
-            path[*step_count].question_node = parent;
             path[*step_count].answer = true;
-        }
+
         else if (parent -> no == current)
-        {
-            path[*step_count].question_node = parent;
             path[*step_count].answer = false;
-        }
+
         else
         {
             printf("Error: The tree structure is broken.\n");
             return TREE_ERROR_STRUCTURE;
         }
+
+        path[*step_count].question_node = parent;
 
         (*step_count)++;
         current = parent;
@@ -506,13 +504,13 @@ tree_error_type build_path_from_leaf_to_root(node_t* leaf, path_step* path, int*
 
 void print_definition(const path_step* path, int step_count)
 {
-    printf("The definition:\n");
+    // printf("The definition:\n");
     for (int i = step_count - 1; i >= 0; i--)
     {
-        if (path[i].answer)
-            printf("%s", path[i].question_node -> question);
-        else
-            printf("not %s", path[i].question_node -> question);
+        if (!path[i].answer)
+            printf("not");
+
+        printf("%s", path[i].question_node -> question);
 
         if (i > 0)
             printf(", ");
@@ -538,6 +536,8 @@ tree_error_type print_object_path(tree_t* tree, const char* object)
         return TREE_NO_ERROR;
     }
 
+
+    // TODO: stack
     path_step path[MAX_PATH_DEPTH] = {};
     int step_count = 0;
 
@@ -603,7 +603,7 @@ tree_error_type read_child_node(const char** position, node_t** parent, node_t**
     assert(parent    != NULL);
     assert(*parent   != NULL);
     assert(position  != NULL);
-    assert(*position != NULL); // copypast assertов
+    assert(*position != NULL); // remove copypast assertов
 
     tree_error_type result = read_node(position, child);
     if (result != TREE_NO_ERROR)
@@ -656,6 +656,8 @@ tree_error_type create_node_and_read_children(const char** position, node_t** no
 
 tree_error_type read_phrase_in_quote(const char** position, char* phrase_buffer)
 {
+    // TODO: assert
+
     tree_error_type result = check_symbol(position, '"');
     if (result != TREE_NO_ERROR)
         return result;
@@ -673,7 +675,6 @@ tree_error_type read_phrase_in_quote(const char** position, char* phrase_buffer)
 
     return TREE_NO_ERROR;
 }
-
 
 
 tree_error_type read_node(const char** position, node_t** node)
@@ -822,6 +823,106 @@ tree_error_type load_tree_from_file(tree_t* tree, const char* filename)
 
     replace_tree(tree, new_root);
     return TREE_NO_ERROR;
+}
+
+
+void print_comparison_results(const char* object1, const char* object2,
+                              path_step* path1, int steps1,
+                              path_step* path2, int steps2,
+                              int common_steps)
+{
+    // TODO: assert
+
+    printf("Common features: ");
+    if (common_steps == 0)
+        printf("none\n");
+    else
+        print_definition(&path1[steps1 - common_steps], common_steps);
+
+    printf("\n%s has unique features: ", object1);
+    if (steps1 - common_steps == 0)
+        printf("none\n");
+    else
+        print_definition(path1, steps1 - common_steps);
+
+    printf("%s has unique features: ", object2);
+    if (steps2 - common_steps == 0)
+        printf("none\n");
+    else
+        print_definition(path2, steps2 - common_steps);
+}
+
+
+int find_common_steps(path_step* path1, int steps1, path_step* path2, int steps2)
+{
+    int common_steps = 0;
+    int min_steps = (steps1 < steps2) ? steps1 : steps2;
+
+    for (int i = 0; i < min_steps; i++)
+    {
+        int index1 = steps1 - 1 - i;
+        int index2 = steps2 - 1 - i;
+
+        if (path1[index1].question_node == path2[index2].question_node &&
+            path1[index1].answer == path2[index2].answer)
+        {
+            common_steps++;
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    return common_steps;
+}
+
+
+tree_error_type find_common_and_different_features(tree_t* tree, const char* object1, const char* object2)
+{
+    assert(object1 != NULL);
+    assert(object2 != NULL);
+
+    node_t* found1 = NULL, *found2 = NULL;
+    find_and_validate_object(tree, object1, &found1);
+    find_and_validate_object(tree, object2, &found2);
+
+    if (found1 == NULL || found2 == NULL)
+    {
+        printf("One or both objects not found.\n");
+        return TREE_NO_ERROR;
+    }
+
+    path_step path1[MAX_PATH_DEPTH] = {};
+    path_step path2[MAX_PATH_DEPTH] = {};
+    int steps1 = 0, steps2 = 0;
+
+    build_path_from_leaf_to_root(found1, path1, &steps1);
+    build_path_from_leaf_to_root(found2, path2, &steps2);
+
+    int common_steps = find_common_steps(path1, steps1, path2, steps2);
+
+    print_comparison_results(object1, object2, path1, steps1, path2, steps2, common_steps);
+
+    return TREE_NO_ERROR;
+}
+
+
+void compare_two_objects(tree_t* tree)
+{
+    if (tree == NULL)
+    {
+        printf("Error: Tree is not initialized.\n");
+        return;
+    }
+
+    char object1[MAX_LENGTH_OF_ANSWER] = {};
+    char object2[MAX_LENGTH_OF_ANSWER] = {};
+
+    get_input_without_negatives("Enter first object: ",  object1, sizeof(object1));
+    get_input_without_negatives("Enter second object: ", object2, sizeof(object2));
+
+    find_common_and_different_features(tree, object1, object2);
 }
 
 
@@ -980,6 +1081,21 @@ tree_error_type create_dot_tree_recursive(tree_t* tree, node_t* node, FILE* dot_
 }
 
 
+tree_error_type create_tree_dot_header(FILE* dot_file)
+{
+    if (dot_file == NULL)
+        return TREE_ERROR_NULL_PTR;
+
+    fprintf(dot_file, "digraph AkinatorTree {\n");
+    fprintf(dot_file, "    rankdir=TB;\n");
+    fprintf(dot_file, "    node [shape=Mrecord, color=black];\n\n");
+    fprintf(dot_file, "    graph [nodesep=0.5, ranksep=1.0];\n");
+    fprintf(dot_file, "    edge [arrowsize=0.8];\n\n");
+
+    return TREE_NO_ERROR;
+}
+
+
 tree_error_type create_dot_file_tree(tree_t* tree, const char* filename)
 {
     assert(filename != NULL);
@@ -990,12 +1106,12 @@ tree_error_type create_dot_file_tree(tree_t* tree, const char* filename)
     if (dot_file == NULL)
         return TREE_ERROR_OPENING_FILE;
 
-    // TODO: create_tree_dot_header
-    fprintf(dot_file, "digraph AkinatorTree {\n");
-    fprintf(dot_file, "    rankdir=TB;\n");
-    fprintf(dot_file, "    node [shape=Mrecord, color=black];\n\n");
-    fprintf(dot_file, "    graph [nodesep=0.5, ranksep=1.0];\n");
-    fprintf(dot_file, "    edge [arrowsize=0.8];\n\n");
+    tree_error_type header_result = create_tree_dot_header(dot_file);
+    if (header_result != TREE_NO_ERROR)
+    {
+        fclose(dot_file);
+        return header_result;
+    }
 
     if (tree -> root == NULL)
         fprintf(dot_file, "    empty [label=\"Empty tree\"];\n");
@@ -1044,17 +1160,11 @@ tree_error_type create_graph_visualization_tree(tree_t* tree, FILE* htm_file, co
     if (dot_result != TREE_NO_ERROR)
         return dot_result;
 
-    tree_error_type execution_result = execute_graphviz_command(temp_dot, temp_svg);
+    execute_graphviz_command(temp_dot, temp_svg);
 
-    if (execution_result == 0)
-    {
-        fprintf(htm_file, "<div style='text-align:center;'>\n");
-        fprintf(htm_file, "<img src='%s' style='max-width:100%%; border:1px solid #ddd;'>\n", temp_svg);
-        fprintf(htm_file, "</div>\n");
-    }
-
-    else
-        fprintf(htm_file, "<p style='color:red;'>Error generating SVG graph</p>\n");
+    fprintf(htm_file, "<div style='text-align:center;'>\n");
+    fprintf(htm_file, "<img src='%s' style='max-width:100%%; border:1px solid #ddd;'>\n", temp_svg);
+    fprintf(htm_file, "</div>\n");
 
     remove(temp_dot);
 
@@ -1181,4 +1291,3 @@ tree_error_type close_tree_log(const char* filename)
 
     return TREE_NO_ERROR;
 }
-

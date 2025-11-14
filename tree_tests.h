@@ -6,5 +6,4 @@
 
 void test_akinator();
 
-
 #endif //TREE_TESTS_H_

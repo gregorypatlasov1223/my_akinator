@@ -56,6 +56,13 @@ tree_error_type build_path_from_leaf_to_root(node_t* leaf, path_step* path, int*
 void print_definition(const path_step* path, int step_count);
 tree_error_type print_object_path(tree_t* tree, const char* object);
 void give_object_definition(tree_t* tree);
+tree_error_type find_common_and_different_features(tree_t* tree, const char* object1, const char* object2);
+void print_comparison_results(const char* object1, const char* object2,
+                              path_step* path1, int steps1,
+                              path_step* path2, int steps2,
+                              int common_steps);
+int find_common_steps(path_step* path1, int steps1, path_step* path2, int steps2);
+void compare_two_objects(tree_t* tree);
 void format_node_part(char* part_buffer, size_t buffer_size, const char* label, node_t* child_node);
 
 // Функции сохранения и вывода
@@ -73,6 +80,7 @@ tree_error_type read_file_to_buffer(const char* filename, char** buffer);
 tree_error_type validate_no_extra_chars(const char* position, node_t* tree_root);
 void replace_tree(tree_t* tree, node_t* new_root);
 tree_error_type load_tree_from_file(tree_t* tree, const char* filename);
+
 
 // Акинатор
 void print_menu();
@@ -106,6 +114,7 @@ tree_error_type write_tree_nodes_table_recursive(node_t* node, FILE* htm_file);
 void write_tree_nodes_table(FILE* htm_file, tree_t* tree);
 int is_root_node(tree_t* tree, node_t* node);
 tree_error_type create_dot_tree_recursive(tree_t* tree, node_t* node, FILE* dot_file, int level);
+tree_error_type create_tree_dot_header(FILE* dot_file);
 tree_error_type create_dot_file_tree(tree_t* tree, const char* filename);
 tree_error_type create_graph_visualization_tree(tree_t* tree, FILE* htm_file, const char* folder_name, time_t now);
 tree_error_type tree_dump_to_htm(tree_t* tree, FILE* htm_file, const char* folder_name);
