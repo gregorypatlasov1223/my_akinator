@@ -62,7 +62,16 @@ void format_node_part(char* part_buffer, size_t buffer_size, const char* label, 
 tree_error_type save_tree_to_file_recursive(const node_t* node, FILE* file);
 tree_error_type save_tree_to_file(const tree_t* tree, const char* filename);
 tree_error_type print_tree_node(const node_t* node);
+void move_position_until_get_not_space(const char** position);
+tree_error_type check_symbol(const char** position, char expected_symbol);
+tree_error_type read_child_node(const char** position, node_t** parent, node_t** child);
+tree_error_type read_nil_node(const char** position, node_t** node);
+tree_error_type create_node_and_read_children(const char** position, node_t** node, const char* phrase);
+tree_error_type read_phrase_in_quote(const char** position, char* phrase_buffer);
 tree_error_type read_node(const char** position, node_t** node);
+tree_error_type read_file_to_buffer(const char* filename, char** buffer);
+tree_error_type validate_no_extra_chars(const char* position, node_t* tree_root);
+void replace_tree(tree_t* tree, node_t* new_root);
 tree_error_type load_tree_from_file(tree_t* tree, const char* filename);
 
 // Акинатор

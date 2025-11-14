@@ -231,20 +231,6 @@ tree_error_type tree_common_dump(tree_t* tree)
 }
 
 
-// // Функция для проверки, является ли подстрока отдельным словом
-// int is_whole_word(const char* string, const char* word, size_t position, int word_length)
-// {
-//     if (position > 0 && !isspace(string[position-1]))
-//         return OPERATION_FAILED;
-//
-//     if (string[position + word_length] != '\0' &&
-//         !isspace((unsigned char)string[position + word_length]))
-//         return OPERATION_FAILED;
-//
-//     return COMPLETED_SUCCESSFULLY;
-// }
-
-
 char* string_to_lower_copy(const char* string)
 {
     if (string == NULL)
@@ -254,10 +240,10 @@ char* string_to_lower_copy(const char* string)
     if (lower_string == NULL)
         return NULL;
 
-    // Приводим всю строку к нижнему регистру
+    // приводим всю строку к нижнему регистру
     for (char* letter = lower_string; *letter; letter++)
     {
-        *letter = tolower((unsigned char)*letter);
+        *letter = (char)tolower((unsigned char)*letter);
     }
 
     return lower_string;
@@ -546,7 +532,6 @@ tree_error_type print_object_path(tree_t* tree, const char* object)
     if (validation_result != TREE_NO_ERROR)
         return validation_result;
 
-    // Добавляем эту проверку
     if (found == NULL)
     {
         printf("Object \"%s\" not found in the database.\n", object);
@@ -589,85 +574,56 @@ void give_object_definition(tree_t* tree)
 }
 
 
-tree_error_type read_node(const char** position, node_t** node)
+void move_position_until_get_not_space(const char** position)
 {
     assert(position  != NULL);
     assert(*position != NULL);
 
-    if (node == NULL)
-        return TREE_ERROR_NULL_PTR;
-
     while (isspace((unsigned char)**position))
         (*position)++;
+}
 
-    if (**position == '(')
+
+tree_error_type check_symbol(const char** position, char expected_symbol)
+{
+    assert(position  != NULL);
+    assert(*position != NULL);
+
+    if (**position != expected_symbol)
+        return TREE_ERROR_SYNTAX;
+
+    (*position)++;
+
+    return TREE_NO_ERROR;
+}
+
+
+tree_error_type read_child_node(const char** position, node_t** parent, node_t** child)
+{
+    assert(parent    != NULL);
+    assert(*parent   != NULL);
+    assert(position  != NULL);
+    assert(*position != NULL); // copypast assertов
+
+    tree_error_type result = read_node(position, child);
+    if (result != TREE_NO_ERROR)
     {
-        (*position)++;
-
-        while (isspace((unsigned char)**position))
-            (*position)++;
-
-        if (**position != '"')
-            return TREE_ERROR_SYNTAX;
-        (*position)++;
-
-        int chars_read = 0;
-        char phrase[MAX_LENGTH_OF_ANSWER] = {};
-
-        if (sscanf(*position, "%[^\"]%n", phrase, &chars_read) != 1)
-            return TREE_ERROR_SYNTAX;
-
-        (*position) += chars_read;
-
-        if (**position != '"')
-            return TREE_ERROR_SYNTAX;
-        (*position)++;
-
-        while (isspace((unsigned char)**position))
-            (*position)++;
-
-        tree_error_type result = tree_create_node(node, phrase);
-        if (result != TREE_NO_ERROR)
-            return result;
-
-        result = read_node(position, &((*node)->yes));
-        if (result != TREE_NO_ERROR)
-        {
-            tree_destroy_recursive(*node);
-            *node = NULL;
-            return result;
-        }
-
-        if ((*node)->yes != NULL)
-            (*node)->yes->parent = *node;
-
-        while (isspace((unsigned char)**position))
-            (*position)++;
-
-        result = read_node(position, &((*node)->no));
-        if (result != TREE_NO_ERROR)
-        {
-            tree_destroy_recursive(*node);
-            *node = NULL;
-            return result;
-        }
-
-        if ((*node)->no != NULL)
-            (*node)->no->parent = *node;
-
-
-        while (isspace((unsigned char)**position))
-            (*position)++;
-
-        if (**position != ')')
-            return TREE_ERROR_SYNTAX;
-        (*position)++;
-
-        return TREE_NO_ERROR;
+        tree_destroy_recursive(*parent);
+        *parent = NULL;
+        return result;
     }
 
-    while (isspace((unsigned char)**position))
-        (*position)++;
+    if (*child != NULL)
+        (*child) -> parent = *parent;
+
+    move_position_until_get_not_space(position);
+    return TREE_NO_ERROR;
+}
+
+
+tree_error_type read_nil_node(const char** position, node_t** node)
+{
+    move_position_until_get_not_space(position);
 
     if (strncmp(*position, "nil", 3) == 0)
     {
@@ -677,6 +633,75 @@ tree_error_type read_node(const char** position, node_t** node)
     }
 
     return TREE_ERROR_SYNTAX;
+}
+
+
+tree_error_type create_node_and_read_children(const char** position, node_t** node, const char* phrase)
+{
+    tree_error_type result = tree_create_node(node, phrase);
+    if (result != TREE_NO_ERROR)
+        return result;
+
+    result = read_child_node(position, node, &((*node) -> yes));
+    if (result != TREE_NO_ERROR)
+        return result;
+
+    result = read_child_node(position, node, &((*node) -> no));
+    if (result != TREE_NO_ERROR)
+        return result;
+
+    return check_symbol(position, ')');
+}
+
+
+tree_error_type read_phrase_in_quote(const char** position, char* phrase_buffer)
+{
+    tree_error_type result = check_symbol(position, '"');
+    if (result != TREE_NO_ERROR)
+        return result;
+
+    int chars_read = 0;
+
+    if (sscanf(*position, "%[^\"]%n", phrase_buffer, &chars_read) != 1)
+        return TREE_ERROR_SYNTAX;
+
+    (*position) += chars_read;
+
+    check_symbol(position, '"');
+
+    move_position_until_get_not_space(position);
+
+    return TREE_NO_ERROR;
+}
+
+
+
+tree_error_type read_node(const char** position, node_t** node)
+{
+    assert(position  != NULL);
+    assert(*position != NULL);
+
+    if (node == NULL)
+        return TREE_ERROR_NULL_PTR;
+
+    move_position_until_get_not_space(position);
+
+    if (**position == '(')
+    {
+        (*position)++;
+
+        move_position_until_get_not_space(position);
+
+        char phrase[MAX_LENGTH_OF_ANSWER] = {};
+
+        tree_error_type result = read_phrase_in_quote(position, phrase);
+        if (result != TREE_NO_ERROR)
+            return result;
+
+        return create_node_and_read_children(position, node, phrase);
+    }
+
+    return read_nil_node(position, node);
 }
 
 
@@ -703,10 +728,10 @@ size_t get_file_size(FILE *file)
 }
 
 
-tree_error_type load_tree_from_file(tree_t* tree, const char* filename)
+tree_error_type read_file_to_buffer(const char* filename, char** buffer)
 {
-    assert(tree     != NULL);
-    assert(filename != NULL);
+    assert(buffer    != NULL);
+    assert(filename  != NULL);
 
     FILE* file = fopen(filename, "r");
     if (file == NULL)
@@ -720,37 +745,72 @@ tree_error_type load_tree_from_file(tree_t* tree, const char* filename)
         return TREE_ERROR_OPENING_FILE;
     }
 
-    char* buffer = (char*)calloc(file_size + 1, sizeof(char)); // +1 для \0
-    if (buffer == NULL)
+    char* local_buffer = (char*)calloc(file_size + 1, sizeof(char));
+    if (local_buffer == NULL)
     {
         fclose(file);
         return TREE_ERROR_ALLOCATION;
     }
 
-    size_t bytes_read = fread(buffer, sizeof(char), file_size, file);
+    size_t bytes_read = fread(local_buffer, sizeof(char), file_size, file);
     if (bytes_read != file_size)
         printf("Warning: Read only %zu bytes out of %zu\n", bytes_read, file_size);
 
-    buffer[bytes_read] = '\0';
+    local_buffer[bytes_read] = '\0';
     fclose(file);
 
-    const char* position = buffer;
-    node_t* new_root = NULL; // корень нового дерева
+    *buffer = local_buffer;
 
-    tree_error_type result = read_node(&position, &new_root);
+    return TREE_NO_ERROR;
+}
+
+
+tree_error_type validate_no_extra_chars(const char* position, node_t* tree_root)
+{
+    assert(position  != NULL);
+    assert(tree_root != NULL);
+
+    move_position_until_get_not_space(&position);
+    if (*position != '\0')
+    {
+        tree_destroy_recursive(tree_root);
+        printf("Syntax error: extra characters after tree: '%s'\n", position);
+        return TREE_ERROR_SYNTAX;
+    }
+
+    return TREE_NO_ERROR;
+}
+
+
+void replace_tree(tree_t* tree, node_t* new_root)
+{
+    assert(tree     != NULL);
+    assert(new_root != NULL);
+
+    tree_destructor(tree);
+    tree -> root = new_root;
+    tree -> size = count_nodes_recursive(new_root);
+}
+
+
+tree_error_type load_tree_from_file(tree_t* tree, const char* filename)
+{
+    assert(tree     != NULL);
+    assert(filename != NULL);
+
+    char* buffer = NULL;
+
+    tree_error_type result = read_file_to_buffer(filename, &buffer);
+    if (result != TREE_NO_ERROR)
+        return result;
+
+    const char* position = buffer;
+    node_t* new_root = NULL;
+
+    result = read_node(&position, &new_root);
 
     if (result == TREE_NO_ERROR)
-    {
-        while (isspace((unsigned char)*position))
-            position++;
-
-        if (*position != '\0')
-        {
-            tree_destroy_recursive(new_root);
-            result = TREE_ERROR_SYNTAX;
-            printf("Syntax error: extra characters after tree: '%s'\n", position);
-        }
-    }
+        result = validate_no_extra_chars(position, new_root);
 
     free(buffer);
 
@@ -760,12 +820,7 @@ tree_error_type load_tree_from_file(tree_t* tree, const char* filename)
         return result;
     }
 
-    // заменяем старое дерево новым
-    tree_destructor(tree);
-    tree -> root = new_root;
-    tree -> size = count_nodes_recursive(new_root);
-
-    printf("Tree successfully loaded from %s (%zu nodes)\n", filename, tree -> size);
+    replace_tree(tree, new_root);
     return TREE_NO_ERROR;
 }
 
@@ -778,7 +833,7 @@ tree_error_type akinator_play(tree_t* tree)
     node_t* current = tree -> root;
     char answer[MAX_LENGTH_OF_ANSWER] = {};
 
-    // Проходим по дереву вопросов
+    // проходим по дереву вопросов
     current = ask_questions_until_leaf(current, answer, sizeof(answer));
 
     printf("Is it %s? (yes/no): ", current -> question);

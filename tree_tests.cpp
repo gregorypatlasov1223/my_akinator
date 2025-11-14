@@ -19,7 +19,6 @@ void test_akinator()
 
     printf("=== Starting Akinator Test ===\n");
 
-    // 1.Проверка с кошкой кошку
     printf("Session 1: Adding 'cat'\n");
     {
         node_t* current = tree.root;
@@ -28,7 +27,6 @@ void test_akinator()
         tree_dump(&tree, folder_name);
     }
 
-    // 2.Проверка собаки
     printf("Session 2: Adding 'dog'\n");
     {
         node_t* cat_node = tree.root -> yes;
@@ -37,7 +35,6 @@ void test_akinator()
         tree_dump(&tree, folder_name);
     }
 
-    // 3. Проверка птицы
     printf("Session 3: Adding 'bird'\n");
     {
         node_t* nothing_node = tree.root -> no;
@@ -46,7 +43,6 @@ void test_akinator()
         tree_dump(&tree, folder_name);
     }
 
-    // 4. Проверка рыбы
     printf("Session 4: Adding 'fish'\n");
     {
         node_t* no_fly_node = tree.root -> no -> no;
@@ -55,12 +51,11 @@ void test_akinator()
         tree_dump(&tree, folder_name);
     }
 
-    // 5. Проверяем змею
     printf("Session 5: Adding 'snake'\n");
     {
         node_t* no_bark_node = tree.root -> yes -> no;
 
-        tree_split_node(&tree, no_bark_node, "has legs", "snake");
+        tree_split_node(&tree, no_bark_node, "live in Thailand", "snake");
         tree_dump(&tree, folder_name);
     }
 
