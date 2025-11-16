@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "tree.h"
+#include "speech.h"
 #include "tree_tests.h"
 #include "tree_error_type.h"
 
@@ -59,7 +60,7 @@ int main()
                 result = akinator_play(&tree);
                 if (result != TREE_NO_ERROR)
                 {
-                    printf("Game error: %s\n", tree_error_translator(result));
+                    speak_print_with_variable_number_of_parameters("Game error: %s\n", tree_error_translator(result));
                 }
                 break;
 
@@ -67,11 +68,11 @@ int main()
                 result = save_tree_to_file(&tree, filename);
                 if (result == TREE_NO_ERROR)
                 {
-                    printf("Tree successfully saved to %s\n", filename);
+                    speak_print_with_variable_number_of_parameters("Tree successfully saved to %s\n", filename);
                 }
                 else
                 {
-                    printf("Error saving tree: %s\n", tree_error_translator(result));
+                    speak_print_with_variable_number_of_parameters("Error saving tree: %s\n", tree_error_translator(result));
                 }
                 break;
 
@@ -89,21 +90,23 @@ int main()
                 break;
 
             case 6:
-                printf("Goodbye!\n");
+                speak_print_with_variable_number_of_parameters("Goodbye!\n");
                 break;
 
             default:
-                printf("Invalid option. Please try again.\n");
+                speak_print_with_variable_number_of_parameters("Invalid option. Please try again.\n");
                 break;
         }
 
     } while (choice != 6);
 
-    printf("Saving database before exit...\n");
+    speak_print_with_variable_number_of_parameters("Saving database before exit...\n");
     save_tree_to_file(&tree, default_database);
 
     tree_destructor(&tree);
     return 0;
 
-    // all_tests();
 }
+
+
+

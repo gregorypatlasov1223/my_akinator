@@ -1,14 +1,18 @@
+#include <TXLib.h>
 #include <time.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <stdarg.h>
 #include <stdbool.h>
 #include <sys/stat.h>
 
 #include "tree.h"
+#include "speech.h"
 #include "tree_error_type.h"
+
 
 const char* tree_error_translator(tree_error_type error)
 {
@@ -210,19 +214,19 @@ tree_error_type tree_common_dump(tree_t* tree)
 {
     if (tree == NULL)
     {
-        printf("Tree is NULL");
+        speak_print_with_variable_number_of_parameters("Tree is NULL");
         return TREE_ERROR_NULL_PTR;
     }
 
-    printf("=====TREE DUMP=====\n");
-    printf("Tree size = %zu\n", tree -> size);
+    speak_print_with_variable_number_of_parameters("=====TREE DUMP=====");
+    speak_print_with_variable_number_of_parameters("Tree size = %zu", tree -> size);
 
     tree_error_type verify_result = tree_verify(tree);
-    printf("Tree verification: %s\n", tree_error_translator(verify_result));
+    speak_print_with_variable_number_of_parameters("Tree verification: %s", tree_error_translator(verify_result));
 
-    printf("Tree structure:\n");
+    speak_print_with_variable_number_of_parameters("Tree structure:");
     if (tree -> root == NULL)
-        printf("EMPTY TREE\n");
+        speak_print_with_variable_number_of_parameters("EMPTY TREE");
     else
         print_tree_node(tree -> root);
 
@@ -231,12 +235,12 @@ tree_error_type tree_common_dump(tree_t* tree)
 }
 
 
-char* string_to_lower_copy(const char* string)
+char* string_to_lower_copy(const char* str)
 {
-    if (string == NULL)
+    if (str == NULL)
         return NULL;
 
-    char* lower_string = strdup(string);
+    char* lower_string = strdup(str);
     if (lower_string == NULL)
         return NULL;
 
@@ -250,9 +254,9 @@ char* string_to_lower_copy(const char* string)
 }
 
 
-int contains_negative_words(const char* string)
+int contains_negative_words(const char* str)
 {
-    if (string == NULL)
+    if (str == NULL)
         return OPERATION_FAILED;
 
     const char* forbidden_phrases[] = {"do not", "is not", "does not", "did not",
@@ -260,7 +264,7 @@ int contains_negative_words(const char* string)
 
     size_t number_of_phrases = sizeof(forbidden_phrases) / sizeof(forbidden_phrases[0]);
 
-    char* lower_input = string_to_lower_copy(string);
+    char* lower_input = string_to_lower_copy(str);
 
     if (lower_input == NULL)
         return OPERATION_FAILED;
@@ -291,7 +295,7 @@ void get_input_without_negatives(const char* input_message, char* buffer, size_t
     while (!valid)
     {
         if (input_message != NULL)
-            printf("%s", input_message);
+            speak_print_with_variable_number_of_parameters("%s", input_message);
 
         fgets(buffer, (int)buffer_size, stdin);
         buffer[strcspn(buffer, "\n")] = '\0'; // убираем символ \n который fgets() добавляет в конец введенной строки
@@ -299,7 +303,7 @@ void get_input_without_negatives(const char* input_message, char* buffer, size_t
         if (!contains_negative_words(buffer))
             valid = true;
         else
-            printf("Please avoid negative phrases. Try again: ");
+            speak_print_with_variable_number_of_parameters("Please avoid negative phrases. Try again: ");
     }
 }
 
@@ -308,7 +312,7 @@ void validate_yes_no_input(char* answer, size_t answer_size)
 {
     while (strcmp(answer, "yes") != 0 && strcmp(answer, "no") != 0)
     {
-        printf("Please answer only 'yes' or 'no': ");
+        speak_print_with_variable_number_of_parameters("Please answer only 'yes' or 'no': ");
         get_input_without_negatives("", answer, answer_size);
     }
 }
@@ -321,7 +325,7 @@ node_t* ask_questions_until_leaf(node_t* current, char* answer, size_t answer_si
 
     while (current -> yes != NULL && current -> no != NULL)
     {
-        printf("%s? (yes/no): ", current -> question);
+        speak_print_with_variable_number_of_parameters("%s? (yes/no): ", current -> question);
         get_input_without_negatives("", answer, answer_size);
 
         validate_yes_no_input(answer, answer_size);
@@ -346,14 +350,13 @@ tree_error_type learn_new_object(tree_t* tree, node_t* current_node)
 
     get_input_without_negatives("Who was it?: ", new_object, sizeof(new_object));
 
-    char feature_input_message[MAX_LENGTH_OF_ANSWER] = {}; // приглашение для ввода признака
-    snprintf(feature_input_message, sizeof(feature_input_message),
-             "How is %s different? It... ", new_object);
+    speak_print_with_variable_number_of_parameters("How is %s different? It...", new_object);
 
-    get_input_without_negatives(feature_input_message, feature, sizeof(feature));
+    get_input_without_negatives("Enter the distinguishing feature: ", feature, sizeof(feature));
     tree_split_node(tree, current_node, feature, new_object);
 
-    printf("I'll remember that!\n");
+    speak_print_with_variable_number_of_parameters("Great! I'll remember that for next time!");
+
     return TREE_NO_ERROR;
 }
 
@@ -395,14 +398,14 @@ tree_error_type save_tree_to_file(const tree_t* tree, const char* filename)
 
 void print_menu()
 {
-    printf("\n=== AKINATOR GAME ===\n");
-    printf("1. Play game\n");
-    printf("2. Save tree to file\n");
-    printf("3. Show tree structure\n");
-    printf("4. Give definition\n");
-    printf("5. Compare two objects\n");
-    printf("6. Exit\n");
-    printf("Choose option: ");
+    speak_print_with_variable_number_of_parameters("\n=== AKINATOR GAME ===\n");
+    speak_print_with_variable_number_of_parameters("1. Play game\n");
+    speak_print_with_variable_number_of_parameters("2. Save tree to file\n");
+    speak_print_with_variable_number_of_parameters("3. Show tree structure\n");
+    speak_print_with_variable_number_of_parameters("4. Give definition\n");
+    speak_print_with_variable_number_of_parameters("5. Compare two objects\n");
+    speak_print_with_variable_number_of_parameters("6. Exit\n");
+    speak_print_with_variable_number_of_parameters("Choose option: ");
 }
 
 
@@ -452,14 +455,14 @@ tree_error_type find_and_validate_object(tree_t* tree, const char* object, node_
 {
     if (tree == NULL || object == NULL)
     {
-        printf("Error: No tree or object specified.\n");
+        speak_print_with_variable_number_of_parameters("Error: No tree or object specified.\n");
         return TREE_ERROR_NULL_PTR;
     }
 
     *found_node = find_leaf_by_phrase(tree -> root, object);
     if (*found_node == NULL)
     {
-        printf("Object \"%s\" not found in the database.\n", object);
+        speak_print_with_variable_number_of_parameters("Object \"%s\" not found in the database.\n", object);
         return TREE_NO_ERROR;
     }
 
@@ -488,7 +491,7 @@ tree_error_type build_path_from_leaf_to_root(node_t* leaf, path_step* path, int*
 
         else
         {
-            printf("Error: The tree structure is broken.\n");
+            speak_print_with_variable_number_of_parameters("Error: The tree structure is broken.\n");
             return TREE_ERROR_STRUCTURE;
         }
 
@@ -504,16 +507,15 @@ tree_error_type build_path_from_leaf_to_root(node_t* leaf, path_step* path, int*
 
 void print_definition(const path_step* path, int step_count)
 {
-    // printf("The definition:\n");
     for (int i = step_count - 1; i >= 0; i--)
     {
         if (!path[i].answer)
-            printf("not");
+            speak_print_with_variable_number_of_parameters("not ");
 
-        printf("%s", path[i].question_node -> question);
+        speak_print_with_variable_number_of_parameters("%s", path[i].question_node -> question);
 
         if (i > 0)
-            printf(", ");
+            speak_print_with_variable_number_of_parameters(", ");
     }
     printf("\n");
 }
@@ -532,7 +534,7 @@ tree_error_type print_object_path(tree_t* tree, const char* object)
 
     if (found == NULL)
     {
-        printf("Object \"%s\" not found in the database.\n", object);
+        speak_print_with_variable_number_of_parameters("Object \"%s\" not found in the database.\n", object);
         return TREE_NO_ERROR;
     }
 
@@ -547,7 +549,7 @@ tree_error_type print_object_path(tree_t* tree, const char* object)
 
     if (step_count == 0)
     {
-        printf("This is the root object: %s\n", found -> question);
+        speak_print_with_variable_number_of_parameters("This is the root object: %s\n", found -> question);
     }
     else
     {
@@ -562,13 +564,17 @@ void give_object_definition(tree_t* tree)
 {
     if (tree == NULL || tree -> root == NULL)
     {
-        printf("The tree is not initialized!\n");
+        speak_print_with_variable_number_of_parameters("The tree is not initialized!\n");
         return;
     }
 
     char object_name[MAX_LENGTH_OF_ANSWER] = {};
-    get_input_without_negatives("Enter the name of the object to search for: ",
+
+    speak_print_with_variable_number_of_parameters("Which object would you like me to describe?");
+    get_input_without_negatives(" Enter the name of the object to search for: ",
                                  object_name, sizeof(object_name));
+
+    speak_print_with_variable_number_of_parameters("Here's what I know about %s \n", object_name);
 
     print_object_path(tree, object_name);
 }
@@ -603,7 +609,7 @@ tree_error_type read_child_node(const char** position, node_t** parent, node_t**
     assert(parent    != NULL);
     assert(*parent   != NULL);
     assert(position  != NULL);
-    assert(*position != NULL); // remove copypast assertов
+    assert(*position != NULL);
 
     tree_error_type result = read_node(position, child);
     if (result != TREE_NO_ERROR)
@@ -656,7 +662,9 @@ tree_error_type create_node_and_read_children(const char** position, node_t** no
 
 tree_error_type read_phrase_in_quote(const char** position, char* phrase_buffer)
 {
-    // TODO: assert
+    assert(position      != NULL);
+    assert(*position     != NULL);
+    assert(phrase_buffer != NULL);
 
     tree_error_type result = check_symbol(position, '"');
     if (result != TREE_NO_ERROR)
@@ -742,7 +750,7 @@ tree_error_type read_file_to_buffer(const char* filename, char** buffer)
     if (file_size == 0)
     {
         fclose(file);
-        printf("Error: File is empty or cannot get file size\n");
+        speak_print_with_variable_number_of_parameters("Error: File is empty or cannot get file size\n");
         return TREE_ERROR_OPENING_FILE;
     }
 
@@ -755,7 +763,7 @@ tree_error_type read_file_to_buffer(const char* filename, char** buffer)
 
     size_t bytes_read = fread(local_buffer, sizeof(char), file_size, file);
     if (bytes_read != file_size)
-        printf("Warning: Read only %zu bytes out of %zu\n", bytes_read, file_size);
+        speak_print_with_variable_number_of_parameters("Warning: Read only %zu bytes out of %zu\n", bytes_read, file_size);
 
     local_buffer[bytes_read] = '\0';
     fclose(file);
@@ -775,7 +783,7 @@ tree_error_type validate_no_extra_chars(const char* position, node_t* tree_root)
     if (*position != '\0')
     {
         tree_destroy_recursive(tree_root);
-        printf("Syntax error: extra characters after tree: '%s'\n", position);
+        speak_print_with_variable_number_of_parameters("Syntax error: extra characters after tree: '%s'\n", position);
         return TREE_ERROR_SYNTAX;
     }
 
@@ -817,7 +825,7 @@ tree_error_type load_tree_from_file(tree_t* tree, const char* filename)
 
     if (result != TREE_NO_ERROR)
     {
-        printf("Error loading tree from file: %s\n", tree_error_translator(result));
+        speak_print_with_variable_number_of_parameters("Error loading tree from file: %s\n", tree_error_translator(result));
         return result;
     }
 
@@ -831,23 +839,26 @@ void print_comparison_results(const char* object1, const char* object2,
                               path_step* path2, int steps2,
                               int common_steps)
 {
-    // TODO: assert
+    assert(path1   != NULL);
+    assert(path2   != NULL);
+    assert(object1 != NULL);
+    assert(object2 != NULL);
 
-    printf("Common features: ");
+    speak_print_with_variable_number_of_parameters("Common features: ");
     if (common_steps == 0)
-        printf("none\n");
+        speak_print_with_variable_number_of_parameters("none\n");
     else
         print_definition(&path1[steps1 - common_steps], common_steps);
 
-    printf("\n%s has unique features: ", object1);
+    speak_print_with_variable_number_of_parameters("\n%s has unique features: ", object1);
     if (steps1 - common_steps == 0)
-        printf("none\n");
+        speak_print_with_variable_number_of_parameters("none\n");
     else
         print_definition(path1, steps1 - common_steps);
 
-    printf("%s has unique features: ", object2);
+    speak_print_with_variable_number_of_parameters("%s has unique features: ", object2);
     if (steps2 - common_steps == 0)
-        printf("none\n");
+        speak_print_with_variable_number_of_parameters("none\n");
     else
         print_definition(path2, steps2 - common_steps);
 }
@@ -889,7 +900,7 @@ tree_error_type find_common_and_different_features(tree_t* tree, const char* obj
 
     if (found1 == NULL || found2 == NULL)
     {
-        printf("One or both objects not found.\n");
+        speak_print_with_variable_number_of_parameters("One or both objects not found.\n");
         return TREE_NO_ERROR;
     }
 
@@ -912,7 +923,7 @@ void compare_two_objects(tree_t* tree)
 {
     if (tree == NULL)
     {
-        printf("Error: Tree is not initialized.\n");
+        speak_print_with_variable_number_of_parameters("Error: Tree is not initialized.\n");
         return;
     }
 
@@ -934,21 +945,28 @@ tree_error_type akinator_play(tree_t* tree)
     node_t* current = tree -> root;
     char answer[MAX_LENGTH_OF_ANSWER] = {};
 
+    speak_print_with_variable_number_of_parameters("Let's play! I'll try to guess your object.");
+    printf("\n");
     // проходим по дереву вопросов
     current = ask_questions_until_leaf(current, answer, sizeof(answer));
 
-    printf("Is it %s? (yes/no): ", current -> question);
+    speak_print_with_variable_number_of_parameters("Is it %s?\n", current -> question);
+
     get_input_without_negatives("", answer, sizeof(answer));
 
     validate_yes_no_input(answer, sizeof(answer));
 
     if (strcmp(answer, "yes") == 0)
     {
-        printf("AI wins!\n");
+        speak_print_with_variable_number_of_parameters("AI wins!");
+        speak_print_with_variable_number_of_parameters("Hooray! I won!");
         return TREE_NO_ERROR;
     }
     else
+    {
+        speak_print_with_variable_number_of_parameters("Okay, I was wrong. Let me learn!");
         return learn_new_object(tree, current);
+    }
 
     return TREE_NO_ERROR;
 }
@@ -1152,8 +1170,8 @@ tree_error_type create_graph_visualization_tree(tree_t* tree, FILE* htm_file, co
     char temp_dot[MAX_LENGTH_OF_FILENAME] = {};
     char temp_svg[MAX_LENGTH_OF_FILENAME] = {};
 
-    snprintf(temp_dot, sizeof(temp_dot), "%s/tree_temp_%d%ld.dot", folder_name, number_of_pictures, now);
-    snprintf(temp_svg, sizeof(temp_svg), "%s/tree_temp_%d%ld.svg", folder_name, number_of_pictures, now);
+    snprintf(temp_dot, sizeof(temp_dot), "%s/tree_temp_%d%lld.dot", folder_name, number_of_pictures, (long long)now);
+    snprintf(temp_svg, sizeof(temp_svg), "%s/tree_temp_%d%lld.svg", folder_name, number_of_pictures, (long long)now);
     number_of_pictures++;
 
     tree_error_type dot_result = create_dot_file_tree(tree, temp_dot);
@@ -1209,7 +1227,8 @@ tree_error_type make_directory(const char* folder_name)
         return TREE_ERROR_NULL_PTR;
 
     char command[MAX_LENGTH_OF_SYSTEM_COMMAND] = {};
-    snprintf(command, sizeof(command), "mkdir -p \"%s\"", folder_name);
+    snprintf(command, sizeof(command), "mkdir \"%s\" 2>nul", folder_name); // для винды
+    // snprintf(command, sizeof(command), "mkdir -p \"%s\"", folder_name); // для wsl
 
     int result = system(command);
     if (result != 0)

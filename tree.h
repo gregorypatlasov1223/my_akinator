@@ -6,9 +6,9 @@
 #include <time.h>
 #include "tree_error_type.h"
 
-#define MAX_LENGTH_OF_ADDRESS 32
-#define MAX_LENGTH_OF_ANSWER 256
-#define MAX_PATH_DEPTH 256
+#define MAX_LENGTH_OF_ADDRESS 128
+#define MAX_LENGTH_OF_ANSWER 1024
+#define MAX_PATH_DEPTH 512
 #define MAX_LENGTH_OF_FILENAME 256
 #define MAX_LENGTH_OF_SYSTEM_COMMAND 512
 
@@ -22,9 +22,9 @@
 struct node_t
 {
     char* question;
-    struct node_t* yes;
-    struct node_t* no;
-    struct node_t* parent;
+    node_t* yes;
+    node_t* no;
+    node_t* parent;
 };
 
 struct tree_t
@@ -84,8 +84,8 @@ tree_error_type load_tree_from_file(tree_t* tree, const char* filename);
 
 // Акинатор
 void print_menu();
-char* string_to_lower_copy(const char* string);
-int contains_negative_words(const char* string);
+char* string_to_lower_copy(const char* str);
+int contains_negative_words(const char* str);
 void get_input_without_negatives(const char* input_message, char* buffer, size_t buffer_size);
 void validate_yes_no_input(char* answer, size_t answer_size);
 node_t* ask_questions_until_leaf(node_t* current, char* answer, size_t answer_size);
@@ -99,6 +99,7 @@ tree_error_type initialization_of_tree_log(const char* filename);
 tree_error_type close_tree_log(const char* filename);
 
 // Вспомогательные функции
+// void speak_print_with_variable_number_of_parameters(const char* format, ...);
 const char* tree_error_translator(tree_error_type error);
 tree_error_type tree_destroy_recursive(node_t* node);
 size_t count_nodes_recursive(node_t* node);

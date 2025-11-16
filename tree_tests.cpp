@@ -1,3 +1,4 @@
+#include <TXLib.h>
 #include <time.h>
 #include <stdio.h>
 #include <string.h>
@@ -5,6 +6,7 @@
 #include <assert.h>
 
 #include "tree.h"
+#include "speech.h"
 #include "tree_error_type.h"
 
 void test_akinator()
@@ -17,7 +19,7 @@ void test_akinator()
 
     tree_dump(&tree, folder_name);
 
-    printf("=== Starting Akinator Test ===\n");
+    speak_print_with_variable_number_of_parameters("Starting Akinator Test\n");
 
     printf("Session 1: Adding 'cat'\n");
     {
@@ -66,12 +68,12 @@ void test_akinator()
     printf("Tree verification: %s\n", tree_error_translator(verify_result));
 
     save_tree_to_file(&tree, "akinator_database.txt");
-    printf("Tree saved to akinator_database.txt\n");
+    speak_print_with_variable_number_of_parameters("Tree saved to akinator_database.txt\n");
 
     close_tree_log(folder_name);
     tree_destructor(&tree);
 
-    printf("=== Akinator Test Completed ===\n");
+    speak_print_with_variable_number_of_parameters("Akinator Test Completed\n");
 }
 
 

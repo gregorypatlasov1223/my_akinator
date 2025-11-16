@@ -1,0 +1,77 @@
+
+--------------------------------------------------
+TXLib соболезнует...
+
+Программа: C:\akinator_on_tree\main.exe,
+
+ВНЕЗАПНО: signal (22, 0x00): SIGABRT: Аварийное завершение программы, вызвана функция abort(). 
+
+С помощью функции signal() вы можете сами обработать эту ошибку.
+
+#1: TXLib [Ver: 00173a, Rev: 174, Date: 2025-08-17 06:00:49 +0400], Instance: 0x00007FF6D59F4010 (64-bit), Flags: Cmdre0, Thread: 0x52C4 (Main). 
+
+--------------------------------------------------
+Стек вызовов:
+
+# 0 0x00007FF6D5833CE6 in C:\akinator_on_tree\main.exe: (anonymous namespace)::TX::_txError() at C:/Users/Grigory/Downloads/TX/TXLib.h:11090
+# 1 0x00007FF6D583424E in C:\akinator_on_tree\main.exe: (anonymous namespace)::TX::_txOnSignal() at C:/Users/Grigory/Downloads/TX/TXLib.h:11171
+# 2 0x00007FFF7E6CEC01 in C:\WINDOWS\System32\msvcrt.dll: raise()
+# 3 0x00007FFF7E6D305B in C:\WINDOWS\System32\msvcrt.dll: abort()
+# 4 0x00007FFF7E6CF9DD in C:\WINDOWS\System32\msvcrt.dll: assert()
+
+# 5 0x00007FF6D5851E5E in C:\akinator_on_tree\main.exe: get_input_without_negatives() at C:/akinator_on_tree/tree.cpp:308:
+
+    306: {
+    307:     assert(buffer        != NULL);
+=>  308:     assert(input_message != NULL);
+    309: 
+    310:     bool valid = false;
+
+# 6 0x00007FF6D5851F43 in C:\akinator_on_tree\main.exe: validate_yes_no_input() at C:/akinator_on_tree/tree.cpp:333:
+
+    331:     {
+    332:         speak_print_with_variable_number_of_parameters("Please answer only 'yes' or 'no': ");
+=>  333:         get_input_without_negatives(NULL, answer, answer_size);
+    334:     }
+    335: }
+
+# 7 0x00007FF6D585202A in C:\akinator_on_tree\main.exe: ask_questions_until_leaf() at C:/akinator_on_tree/tree.cpp:348:
+
+    346:         get_input_without_negatives("", answer, answer_size);
+    347: 
+=>  348:         validate_yes_no_input(answer, answer_size);
+    349: 
+    350:         if (strcmp(answer, "yes") == 0)
+
+# 8 0x00007FF6D58539E8 in C:\akinator_on_tree\main.exe: akinator_play() at C:/akinator_on_tree/tree.cpp:968:
+
+    966:     printf("\n");
+    967:     // РїСЂРѕС…РѕРґРёРј РїРѕ РґРµСЂРµРІСѓ РІРѕРїСЂРѕСЃРѕРІ
+=>  968:     current = ask_questions_until_leaf(current, answer, sizeof(answer));
+    969: 
+    970:     speak_print_with_variable_number_of_parameters("Is it %s?", current -> question);
+
+# 9 0x00007FF6D57F175C in C:\akinator_on_tree\main.exe: main() at C:/akinator_on_tree/main.cpp:59:
+
+     57:                 printf("Answer with 'yes' or 'no' to my questions.\n\n");
+     58: 
+=>   59:                 result = akinator_play(&tree);
+     60:                 if (result != TREE_NO_ERROR)
+     61:                 {
+
+--------------------------------------------------
+Developed with:
+
+The Dumb Artist Library (TX Library)
+TXLib [Ver: 00173a, Rev: 174, Date: 2025-08-17 06:00:49 +0400]
+Copyright (C) Ded (Ilya Dedinsky, http://txlib.ru) <mail@txlib.ru>
+See license on: http://txlib.ru
+
+TXLib file:	C:\Users\Grigory\Downloads\TX\TXLib.h
+Compiled:	Nov 16 2025 20:25:12, GNU g++ 13.2.0, std=201703L, MinGW-W64 Runtime 11.0.1 (alpha - rev. 0) 0000-00-00, 64-bit, DEBUG
+Started:	Nov 16 2025 20:25:55
+
+Run file:	C:\akinator_on_tree\main.exe
+Directory:	C:\akinator_on_tree
+
+--------------------------------------------------
