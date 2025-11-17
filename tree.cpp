@@ -11,8 +11,8 @@
 
 #include "tree.h"
 #include "speech.h"
+#include "graphics.h"
 #include "tree_error_type.h"
-
 
 const char* tree_error_translator(tree_error_type error)
 {
@@ -325,6 +325,8 @@ node_t* ask_questions_until_leaf(node_t* current, char* answer, size_t answer_si
 
     while (current -> yes != NULL && current -> no != NULL)
     {
+        animate_question(current -> question);
+
         speak_print_with_variable_number_of_parameters("%s? (yes/no): ", current -> question);
         get_input_without_negatives("", answer, answer_size);
 
@@ -348,8 +350,10 @@ tree_error_type learn_new_object(tree_t* tree, node_t* current_node)
     char new_object[MAX_LENGTH_OF_ANSWER] = {};
     char feature[MAX_LENGTH_OF_ANSWER]    = {}; // ответ
 
+    animate_question("Who was it?: ");
     get_input_without_negatives("Who was it?: ", new_object, sizeof(new_object));
 
+    animate_question("What is the distinguishing feature?");
     speak_print_with_variable_number_of_parameters("How is %s different? It...", new_object);
 
     get_input_without_negatives("Enter the distinguishing feature: ", feature, sizeof(feature));
@@ -398,6 +402,8 @@ tree_error_type save_tree_to_file(const tree_t* tree, const char* filename)
 
 void print_menu()
 {
+    animate_question("Akinator Game Menu");
+
     speak_print_with_variable_number_of_parameters("\n=== AKINATOR GAME ===\n");
     speak_print_with_variable_number_of_parameters("1. Play game\n");
     speak_print_with_variable_number_of_parameters("2. Save tree to file\n");
@@ -570,6 +576,7 @@ void give_object_definition(tree_t* tree)
 
     char object_name[MAX_LENGTH_OF_ANSWER] = {};
 
+    animate_question("Which object would you like me to describe?");
     speak_print_with_variable_number_of_parameters("Which object would you like me to describe?");
     get_input_without_negatives(" Enter the name of the object to search for: ",
                                  object_name, sizeof(object_name));
@@ -930,7 +937,10 @@ void compare_two_objects(tree_t* tree)
     char object1[MAX_LENGTH_OF_ANSWER] = {};
     char object2[MAX_LENGTH_OF_ANSWER] = {};
 
+    animate_question("Enter first object");
     get_input_without_negatives("Enter first object: ",  object1, sizeof(object1));
+
+    animate_question("Enter second object");
     get_input_without_negatives("Enter second object: ", object2, sizeof(object2));
 
     find_common_and_different_features(tree, object1, object2);
