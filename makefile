@@ -1,6 +1,6 @@
 CC = C:\MinGW\bin\g++
 
-FLAGS ?= -Wall -Wextra -g -pipe -fexceptions \
+FLAGS ?= --std=c++11 -fpermissive -Wall -Wextra -g -pipe -fexceptions \
          -Wno-missing-field-initializers \
          -Wno-unused-parameter \
          -D _DEBUG -D _EJUDGE_CLIENT_SIDE -DTX_USE_SPEAK

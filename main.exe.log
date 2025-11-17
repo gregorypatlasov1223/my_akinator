@@ -75,3 +75,139 @@ Run file:	C:\akinator_on_tree\main.exe
 Directory:	C:\akinator_on_tree
 
 --------------------------------------------------
+
+--------------------------------------------------
+TXLib соболезнует...
+
+Программа: C:\akinator_on_tree\main.exe, файл: C:\Users\Grigory\Downloads\TX\TXLib.h, строка: 13406, функция: HBRUSH__* {anonymous}::TX::txSetFillColor(COLORREF, HDC),
+
+Сообщение: Окно рисования не создано или не в порядке.
+Если вы указали параметр "dc", то он неверен.
+
+#1: TXLib [Ver: 00173a, Rev: 174, Date: 2025-08-17 06:00:49 +0400], Instance: 0x00007FF6B6D048B0 (64-bit), Flags: Cmdre0, Thread: 0x5A60 (Main), GetLastError(): 13 (Недопустимые данные). 
+
+--------------------------------------------------
+Стек вызовов:
+
+# 0 0x00007FF6B6A69031 in C:\akinator_on_tree\main.exe: (anonymous namespace)::TX::_txError() at C:/Users/Grigory/Downloads/TX/TXLib.h:11090
+# 1 0x00007FF6B6A76788 in C:\akinator_on_tree\main.exe: (anonymous namespace)::TX::txSetFillColor() at C:/Users/Grigory/Downloads/TX/TXLib.h:13406
+
+# 2 0x00007FF6B6A86BE7 in C:\akinator_on_tree\main.exe: initialization_graphics() at C:/akinator_on_tree/graphics.cpp:33:
+
+     31: 
+     32:     // Р¤РѕРЅ
+=>   33:     txSetFillColor(RGB(30, 30, 60));
+     34:     txRectangle(0, 0, 800, 600, background);
+     35: 
+
+# 3 0x00007FF6B69C05C8 in C:\akinator_on_tree\main.exe: main() at C:/akinator_on_tree/main.cpp:12:
+
+     10: int main()
+     11: {
+=>   12:     initialization_graphics();
+     13:     printf("=== Graphics initialized successfully ===\n\n");
+     14: 
+
+--------------------------------------------------
+Стек вызовов TX:
+
+# 0 in HBRUSH__* {anonymous}::TX::txSetFillColor(COLORREF, HDC) at C:\Users\Grigory\Downloads\TX\TXLib.h:13406:
+
+  13404: HBRUSH txSetFillColor (COLORREF color, HDC dc /*= txDC()*/)
+  13405:     {
+=>13406: $1  if (_TX_DEFAULT_HDC_FAILED (dc)) return NULL;
+  13407: 
+  13408: $   HBRUSH brush = (color == TX_TRANSPARENT)? (HBRUSH) Win32::GetStockObject (HOLLOW_BRUSH) : Win32::CreateSolidBrush (color);
+
+# 1 in bool initialization_graphics() at graphics.cpp:33:
+
+     31: 
+     32:     // Р¤РѕРЅ
+=>   33:     txSetFillColor(RGB(30, 30, 60));
+     34:     txRectangle(0, 0, 800, 600, background);
+     35: 
+
+--------------------------------------------------
+Developed with:
+
+The Dumb Artist Library (TX Library)
+TXLib [Ver: 00173a, Rev: 174, Date: 2025-08-17 06:00:49 +0400]
+Copyright (C) Ded (Ilya Dedinsky, http://txlib.ru) <mail@txlib.ru>
+See license on: http://txlib.ru
+
+TXLib file:	C:\Users\Grigory\Downloads\TX\TXLib.h
+Compiled:	Nov 17 2025 20:13:33, GNU g++ 13.2.0, std=201103L, MinGW-W64 Runtime 11.0.1 (alpha - rev. 0) 0000-00-00, 64-bit, DEBUG
+Started:	Nov 17 2025 20:14:10
+
+Run file:	C:\akinator_on_tree\main.exe
+Directory:	C:\akinator_on_tree
+
+--------------------------------------------------
+
+--------------------------------------------------
+TXLib соболезнует...
+
+Программа: C:\akinator_on_tree\main.exe, файл: C:\Users\Grigory\Downloads\TX\TXLib.h, строка: 13660, функция: HFONT__* {anonymous}::TX::txSelectFont(const char*, double, double, int, bool, bool, bool, double, HDC),
+
+Сообщение: Окно рисования не создано или не в порядке.
+Если вы указали параметр "dc", то он неверен.
+
+#1: TXLib [Ver: 00173a, Rev: 174, Date: 2025-08-17 06:00:49 +0400], Instance: 0x00007FF7B60548B0 (64-bit), Flags: Cmdre0, Thread: 0x4B34 (Main), GetLastError(): 13 (Недопустимые данные). 
+
+--------------------------------------------------
+Стек вызовов:
+
+# 0 0x00007FF7B5DB9031 in C:\akinator_on_tree\main.exe: (anonymous namespace)::TX::_txError() at C:/Users/Grigory/Downloads/TX/TXLib.h:11090
+# 1 0x00007FF7B5DCA81E in C:\akinator_on_tree\main.exe: (anonymous namespace)::TX::txSelectFont() at C:/Users/Grigory/Downloads/TX/TXLib.h:13660
+
+# 2 0x00007FF7B5DD7128 in C:\akinator_on_tree\main.exe: initialization_graphics() at C:/akinator_on_tree/graphics.cpp:64:
+
+     62:     // РўРµРєСЃС‚ РЅР° С„РѕРЅРµ - РРЎРџР РђР’Р›Р•РќРћ: РґРѕР±Р°РІР»РµРЅР° С‚РѕР»С‰РёРЅР° Р»РёРЅРёРё
+     63:     txSetColor(RGB(200, 200, 255), 1.0, background);  // 1.0 - С‚РѕР»С‰РёРЅР° Р»РёРЅРёРё
+=>   64:     txSelectFont("Arial", 48, 20, FW_BOLD, background);
+     65:     txSetTextAlign(TA_CENTER, background);
+     66:     txTextOut(txGetExtentX() / 2, 250, "AKINATOR", background);
+
+# 3 0x00007FF7B5D105C8 in C:\akinator_on_tree\main.exe: main() at C:/akinator_on_tree/main.cpp:12:
+
+     10: int main()
+     11: {
+=>   12:     initialization_graphics();
+     13:     printf("=== Graphics initialized successfully ===\n\n");
+     14: 
+
+--------------------------------------------------
+Стек вызовов TX:
+
+# 0 in HFONT__* {anonymous}::TX::txSelectFont(const char*, double, double, int, bool, bool, bool, double, HDC) at C:\Users\Grigory\Downloads\TX\TXLib.h:13660:
+
+  13658:     {
+  13659: $1  if (_TX_ARGUMENT_FAILED    (name)) return NULL;
+=>13660: $   if (_TX_DEFAULT_HDC_FAILED (dc))   return NULL;
+  13661: 
+  13662: $   HFONT font = txFontExist (name)?
+
+# 1 in bool initialization_graphics() at graphics.cpp:64:
+
+     62:     // РўРµРєСЃС‚ РЅР° С„РѕРЅРµ - РРЎРџР РђР’Р›Р•РќРћ: РґРѕР±Р°РІР»РµРЅР° С‚РѕР»С‰РёРЅР° Р»РёРЅРёРё
+     63:     txSetColor(RGB(200, 200, 255), 1.0, background);  // 1.0 - С‚РѕР»С‰РёРЅР° Р»РёРЅРёРё
+=>   64:     txSelectFont("Arial", 48, 20, FW_BOLD, background);
+     65:     txSetTextAlign(TA_CENTER, background);
+     66:     txTextOut(txGetExtentX() / 2, 250, "AKINATOR", background);
+
+--------------------------------------------------
+Developed with:
+
+The Dumb Artist Library (TX Library)
+TXLib [Ver: 00173a, Rev: 174, Date: 2025-08-17 06:00:49 +0400]
+Copyright (C) Ded (Ilya Dedinsky, http://txlib.ru) <mail@txlib.ru>
+See license on: http://txlib.ru
+
+TXLib file:	C:\Users\Grigory\Downloads\TX\TXLib.h
+Compiled:	Nov 17 2025 20:27:04, GNU g++ 13.2.0, std=201103L, MinGW-W64 Runtime 11.0.1 (alpha - rev. 0) 0000-00-00, 64-bit, DEBUG
+Started:	Nov 17 2025 20:27:10
+
+Run file:	C:\akinator_on_tree\main.exe
+Directory:	C:\akinator_on_tree
+
+--------------------------------------------------
