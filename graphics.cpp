@@ -13,7 +13,7 @@ bool initialization_graphics()
 
     printf("Initializing graphics system...\n");
 
-    // Создаем окно
+    printf("Creating main window...\n");
     txCreateWindow(800, 600);
     txSleep(200);
 
@@ -56,49 +56,101 @@ void animate_question(const char* question_text)
         }
     }
 
-    // Цвета для анимации
-    COLORREF colors[] = {
-        RGB(80, 40, 40),   // Темно-красный
-        RGB(40, 80, 40),   // Темно-зеленый
-        RGB(40, 40, 80),   // Темно-синий
-        RGB(80, 80, 40),   // Оливковый
-        RGB(80, 40, 80)    // Фиолетовый
+    // Загружаем ваши 3 картинки
+    HDC frames[] = {
+        txLoadImage("frame1.bmp"),
+        txLoadImage("frame2.bmp"),
+        txLoadImage("frame3.bmp")
     };
 
-    for (int cycle = 0; cycle < ANIMATION_CYCLES; cycle++)
+    // Проверяем, что картинки загрузились
+    bool images_loaded = true;
+    for (int i = 0; i < NUMBER_OF_FRAMES; i++)
     {
-        for (int i = 0; i < NUMBER_OF_FRAMES; i++)
+        if (frames[i] == NULL)
         {
-            // Очищаем экран и устанавливаем цвет фона
-            txSetFillColor(colors[i]);
-            txClear();
-
-            // Рисуем заголовок
-            txSetColor(RGB(255, 255, 255), 3);
-            txSelectFont("Arial", 36, 15, FW_BOLD);
-            txSetTextAlign(TA_CENTER);
-
-            char text[MAX_LENGTH_OF_TEXT] = {};
-            sprintf(text, "Frame %d", i + 1);
-            txTextOut(400, 250, text);
-
-            // Рисуем панель для текста вопроса
-            txSetFillColor(RGB(0, 0, 0));
-            txRectangle(0, 520, 800, 600);
-
-            // Выводим текст вопроса
-            txSetColor(TX_WHITE);
-            txSelectFont("Arial", 20, 10, FW_BOLD);
-            txSetTextAlign(TA_CENTER);
-            txTextOut(400, 540, question_text);
-
-            // Обновляем окно
-            txRedrawWindow();
-            txSleep(FRAME_DELAY);
+            printf("ERROR: Failed to load frame%d.bmp\n", i + 1);
+            images_loaded = false;
         }
     }
 
-    // После анимации возвращаем исходный фон
+    // Если картинки не загрузились, используем резервную анимацию
+    if (!images_loaded)
+    {
+        printf("Using backup animation...\n");
+
+        for (int cycle = 0; cycle < ANIMATION_CYCLES; cycle++)
+        {
+            for (int i = 0; i < NUMBER_OF_FRAMES; i++)
+            {
+                // Резервная анимация с цветами
+                COLORREF colors[] = {RGB(80, 40, 40), RGB(40, 80, 40), RGB(40, 40, 80)};
+
+                txSetFillColor(colors[i]);
+                txClear();
+
+                txSetColor(TX_WHITE, 3);
+                txSelectFont("Arial", 36, 15, FW_BOLD);
+                txSetTextAlign(TA_CENTER);
+                txTextOut(400, 250, "AKINATOR");
+
+                // Рисуем панель для текста
+                txSetFillColor(RGB(0, 0, 0));
+                txRectangle(0, 520, 800, 600);
+
+                // Выводим текст вопроса
+                txSetColor(TX_WHITE);
+                txSelectFont("Arial", 20, 10, FW_BOLD);
+                txSetTextAlign(TA_CENTER);
+                txTextOut(400, 540, question_text);
+
+                txRedrawWindow();
+                txSleep(FRAME_DELAY);
+            }
+        }
+    }
+    else
+    {
+        // Используем загруженные картинки
+        printf("Using custom images for animation...\n");
+
+        for (int cycle = 0; cycle < ANIMATION_CYCLES; cycle++)
+        {
+            for (int i = 0; i < NUMBER_OF_FRAMES; i++)
+            {
+                // Очищаем экран
+                txSetFillColor(TX_BLACK);
+                txClear();
+
+                // Отображаем картинку
+                txBitBlt(0, 0, frames[i]);
+
+                // Рисуем полупрозрачную панель для текста
+                txSetFillColor(RGB(0, 0, 0)); // Полупрозрачная черная панель
+                txRectangle(0, 520, 800, 600);
+
+                // Выводим текст вопроса
+                txSetColor(TX_WHITE);
+                txSelectFont("Arial", 20, 10, FW_BOLD);
+                txSetTextAlign(TA_CENTER);
+                txTextOut(400, 540, question_text);
+
+                txRedrawWindow();
+                txSleep(FRAME_DELAY);
+            }
+        }
+
+        // Освобождаем память от загруженных картинок
+        for (int i = 0; i < NUMBER_OF_FRAMES; i++)
+        {
+            if (frames[i] != NULL)
+            {
+                txDeleteDC(frames[i]);
+            }
+        }
+    }
+
+    // Возвращаем исходный экран
     txSetFillColor(RGB(30, 30, 60));
     txClear();
     txSetColor(RGB(200, 200, 255), 3);

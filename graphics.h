@@ -5,7 +5,7 @@
 
 #define ANIMATION_CYCLES 3
 #define NUMBER_OF_FRAMES 3
-#define FRAME_DELAY 150
+#define FRAME_DELAY 500
 #define MAX_LENGTH_OF_TEXT 1024
 
 bool initialization_graphics();
