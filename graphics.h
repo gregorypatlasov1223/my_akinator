@@ -8,9 +8,21 @@
 #define FRAME_DELAY 500
 #define MAX_LENGTH_OF_TEXT 1024
 
+enum game_state
+{
+    STATE_MAIN_MENU  = 0,
+    STATE_PLAYING    = 1,
+    STATE_SHOW_TREE  = 2,
+    STATE_DEFINITION = 3,
+    STATE_COMPARISON = 4,
+    STATE_SAVING     = 5
+};
+
 bool initialization_graphics();
 void close_graphics();
 void animate_question(const char* question_text);
-bool is_graphics_initialized();
+void show_background(int frame_index);
+void show_text(const char* text);
+void set_game_state_background(int state);
 
 #endif // GRAPHICS_H_

@@ -3,17 +3,17 @@
 
 #include "tree.h"
 #include "speech.h"
-#include "graphics.h" 
+#include "graphics.h"
 #include "tree_tests.h"
 #include "tree_error_type.h"
 
 int main()
 {
     initialization_graphics();
-    printf("=== Graphics initialized successfully ===\n\n");
+    printf("Graphics initialized successfully\n\n");
 
     test_akinator();
-    printf("=== Database created successfully ===\n\n");
+    printf("Database created successfully\n\n");
 
     tree_t tree = {};
     tree_error_type result = tree_constructor(&tree);
@@ -48,6 +48,8 @@ int main()
 
     do
     {
+        set_game_state_background(STATE_MAIN_MENU);
+
         print_menu();
         if (scanf("%d", &choice) != 1)
         {
@@ -61,7 +63,8 @@ int main()
         switch (choice)
         {
             case 1:
-                printf("\n=== Starting Game ===\n");
+                set_game_state_background(STATE_PLAYING);
+                printf("\nStarting Game\n");
                 animate_question("Let's play! Think of something!");
                 printf("Think of something, and I'll try to guess it!\n");
                 printf("Answer with 'yes' or 'no' to my questions.\n\n");
@@ -74,6 +77,7 @@ int main()
                 break;
 
             case 2:
+                set_game_state_background(STATE_SAVING);
                 animate_question("Saving database...");
                 result = save_tree_to_file(&tree, filename);
                 if (result == TREE_NO_ERROR)
@@ -87,15 +91,18 @@ int main()
                 break;
 
             case 3:
-                printf("\n=== Tree Structure ===\n");
+                set_game_state_background(STATE_SHOW_TREE);
+                printf("\nTree Structure\n");
                 tree_common_dump(&tree);
                 break;
 
             case 4:
+                set_game_state_background(STATE_DEFINITION);
                 give_object_definition(&tree);
                 break;
 
             case 5:
+                set_game_state_background(STATE_COMPARISON);
                 compare_two_objects(&tree);
                 break;
 
@@ -119,7 +126,7 @@ int main()
     tree_destructor(&tree);
 
     close_graphics();
-    printf("=== Graphics closed successfully ===\n");
+    printf("Graphics closed successfully\n");
 
     return 0;
 }

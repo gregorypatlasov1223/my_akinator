@@ -6,6 +6,7 @@
 #include "graphics.h"
 
 static bool graphics_initialized = false;
+static HDC background_frames[NUMBER_OF_FRAMES] = {NULL, NULL, NULL};
 
 bool initialization_graphics()
 {
@@ -25,14 +26,21 @@ bool initialization_graphics()
 
     printf("Window created successfully: %dx%d\n", txGetExtentX(), txGetExtentY());
 
-    // Рисуем начальный экран
-    txSetFillColor(RGB(30, 30, 60));
-    txClear();
-    txSetColor(RGB(200, 200, 255), 3);
-    txSelectFont("Arial", 48, 20, FW_BOLD);
-    txSetTextAlign(TA_CENTER);
-    txTextOut(400, 250, "AKINATOR");
-    txRedrawWindow();
+    // Загружаем картинки для фона
+    background_frames[0] = txLoadImage("frame1.bmp");
+    background_frames[1] = txLoadImage("frame2.bmp");
+    background_frames[2] = txLoadImage("frame3.bmp");
+
+    for (int i = 0; i < NUMBER_OF_FRAMES; i++)
+    {
+        if (background_frames[i] == NULL)
+        {
+            printf("ERROR: Failed to load frame%d.bmp\n", i + 1);
+        }
+    }
+
+    // Показываем первую картинку как начальный фон
+    show_background(0);
 
     graphics_initialized = true;
     printf("Graphics system initialized successfully\n");
@@ -41,9 +49,97 @@ bool initialization_graphics()
 
 void close_graphics()
 {
+    // Освобождаем память от загруженных картинок
+    for (int i = 0; i < NUMBER_OF_FRAMES; i++)
+    {
+        if (background_frames[i] != NULL)
+        {
+            txDeleteDC(background_frames[i]);
+            background_frames[i] = NULL;
+        }
+    }
+
     graphics_initialized = false;
     printf("Graphics system closed\n");
 }
+
+// Функция для показа фона
+void show_background(int frame_index)
+{
+    if (!graphics_initialized) return;
+
+    if (frame_index >= 0 && frame_index < NUMBER_OF_FRAMES && background_frames[frame_index] != NULL)
+    {
+        // Очищаем экран и отображаем картинку
+        txSetFillColor(TX_BLACK);
+        txClear();
+        txBitBlt(0, 0, background_frames[frame_index]);
+        txRedrawWindow();
+    }
+}
+
+// Функция для показа текста поверх фона
+void show_text(const char* text)
+{
+    if (!graphics_initialized) return;
+
+    // Рисуем панель для текста
+    txSetFillColor(RGB(0, 0, 0));
+    txRectangle(0, 520, 800, 600);
+
+    // Выводим текст
+    txSetColor(TX_WHITE);
+    txSelectFont("Arial", 20, 10, FW_BOLD);
+    txSetTextAlign(TA_CENTER);
+    txTextOut(400, 540, text);
+
+    txRedrawWindow();
+}
+
+
+void set_game_state_background(int state)
+{
+    if (!graphics_initialized) return;
+
+    switch(state)
+    {
+        case STATE_MAIN_MENU:
+            show_background(0);  // Основной фон для меню
+            show_text("Main Menu - Choose an option");
+            break;
+
+        case STATE_PLAYING:
+            show_background(1);  // Фон для игры
+            show_text("Game in progress - Think of something!");
+            break;
+
+        case STATE_SHOW_TREE:
+            show_background(2);  // Фон для показа дерева
+            show_text("Showing tree structure");
+            break;
+
+        case STATE_DEFINITION:
+            show_background(1);  // Фон для определения объекта
+            show_text("Finding object definition");
+            break;
+
+        case STATE_COMPARISON:
+            show_background(2);  // Фон для сравнения объектов
+            show_text("Comparing two objects");
+            break;
+
+        case STATE_SAVING:
+            show_background(0);  // Фон для сохранения
+            show_text("Saving database...");
+            break;
+
+        default:
+            show_background(0);  // Фон по умолчанию
+            show_text("Akinator Game");
+            break;
+    }
+}
+
 
 void animate_question(const char* question_text)
 {
@@ -56,111 +152,20 @@ void animate_question(const char* question_text)
         }
     }
 
-    // Загружаем ваши 3 картинки
-    HDC frames[] = {
-        txLoadImage("frame1.bmp"),
-        txLoadImage("frame2.bmp"),
-        txLoadImage("frame3.bmp")
-    };
+    printf("Starting animation with custom images...\n");
 
-    // Проверяем, что картинки загрузились
-    bool images_loaded = true;
-    for (int i = 0; i < NUMBER_OF_FRAMES; i++)
+    for (int cycle = 0; cycle < ANIMATION_CYCLES; cycle++)
     {
-        if (frames[i] == NULL)
-        {
-            printf("ERROR: Failed to load frame%d.bmp\n", i + 1);
-            images_loaded = false;
-        }
-    }
-
-    // Если картинки не загрузились, используем резервную анимацию
-    if (!images_loaded)
-    {
-        printf("Using backup animation...\n");
-
-        for (int cycle = 0; cycle < ANIMATION_CYCLES; cycle++)
-        {
-            for (int i = 0; i < NUMBER_OF_FRAMES; i++)
-            {
-                // Резервная анимация с цветами
-                COLORREF colors[] = {RGB(80, 40, 40), RGB(40, 80, 40), RGB(40, 40, 80)};
-
-                txSetFillColor(colors[i]);
-                txClear();
-
-                txSetColor(TX_WHITE, 3);
-                txSelectFont("Arial", 36, 15, FW_BOLD);
-                txSetTextAlign(TA_CENTER);
-                txTextOut(400, 250, "AKINATOR");
-
-                // Рисуем панель для текста
-                txSetFillColor(RGB(0, 0, 0));
-                txRectangle(0, 520, 800, 600);
-
-                // Выводим текст вопроса
-                txSetColor(TX_WHITE);
-                txSelectFont("Arial", 20, 10, FW_BOLD);
-                txSetTextAlign(TA_CENTER);
-                txTextOut(400, 540, question_text);
-
-                txRedrawWindow();
-                txSleep(FRAME_DELAY);
-            }
-        }
-    }
-    else
-    {
-        // Используем загруженные картинки
-        printf("Using custom images for animation...\n");
-
-        for (int cycle = 0; cycle < ANIMATION_CYCLES; cycle++)
-        {
-            for (int i = 0; i < NUMBER_OF_FRAMES; i++)
-            {
-                // Очищаем экран
-                txSetFillColor(TX_BLACK);
-                txClear();
-
-                // Отображаем картинку
-                txBitBlt(0, 0, frames[i]);
-
-                // Рисуем полупрозрачную панель для текста
-                txSetFillColor(RGB(0, 0, 0)); // Полупрозрачная черная панель
-                txRectangle(0, 520, 800, 600);
-
-                // Выводим текст вопроса
-                txSetColor(TX_WHITE);
-                txSelectFont("Arial", 20, 10, FW_BOLD);
-                txSetTextAlign(TA_CENTER);
-                txTextOut(400, 540, question_text);
-
-                txRedrawWindow();
-                txSleep(FRAME_DELAY);
-            }
-        }
-
-        // Освобождаем память от загруженных картинок
         for (int i = 0; i < NUMBER_OF_FRAMES; i++)
         {
-            if (frames[i] != NULL)
-            {
-                txDeleteDC(frames[i]);
-            }
+            show_background(i);
+
+            show_text(question_text);
+
+            txSleep(FRAME_DELAY);
         }
     }
 
-    // Возвращаем исходный экран
-    txSetFillColor(RGB(30, 30, 60));
-    txClear();
-    txSetColor(RGB(200, 200, 255), 3);
-    txSelectFont("Arial", 48, 20, FW_BOLD);
-    txSetTextAlign(TA_CENTER);
-    txTextOut(400, 250, "AKINATOR");
-    txRedrawWindow();
+    set_game_state_background(STATE_MAIN_MENU);
 }
 
-bool is_graphics_initialized()
-{
-    return graphics_initialized;
-}

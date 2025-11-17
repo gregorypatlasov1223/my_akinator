@@ -218,7 +218,7 @@ tree_error_type tree_common_dump(tree_t* tree)
         return TREE_ERROR_NULL_PTR;
     }
 
-    speak_print_with_variable_number_of_parameters("=====TREE DUMP=====");
+    speak_print_with_variable_number_of_parameters("TREE DUMP");
     speak_print_with_variable_number_of_parameters("Tree size = %zu", tree -> size);
 
     tree_error_type verify_result = tree_verify(tree);
@@ -404,7 +404,7 @@ void print_menu()
 {
     animate_question("Akinator Game Menu");
 
-    speak_print_with_variable_number_of_parameters("\n=== AKINATOR GAME ===\n");
+    speak_print_with_variable_number_of_parameters("\nAKINATOR GAME\n");
     speak_print_with_variable_number_of_parameters("1. Play game\n");
     speak_print_with_variable_number_of_parameters("2. Save tree to file\n");
     speak_print_with_variable_number_of_parameters("3. Show tree structure\n");
