@@ -211,3 +211,231 @@ Run file:	C:\akinator_on_tree\main.exe
 Directory:	C:\akinator_on_tree
 
 --------------------------------------------------
+
+--------------------------------------------------
+TXLib соболезнует...
+
+Программа: C:\akinator_on_tree\main.exe, файл: C:\Users\Grigory\Downloads\TX\TXLib.h, строка: 13406, функция: HBRUSH__* {anonymous}::TX::txSetFillColor(COLORREF, HDC),
+
+Сообщение: Окно рисования не создано или не в порядке.
+Если вы указали параметр "dc", то он неверен.
+
+#1: TXLib [Ver: 00173a, Rev: 174, Date: 2025-08-17 06:00:49 +0400], Instance: 0x00007FF6D77B38D0 (64-bit), Flags: Cmdre0, Thread: 0x2EE0 (Main), GetLastError(): 13 (Недопустимые данные). 
+
+--------------------------------------------------
+Стек вызовов:
+
+# 0 0x00007FF6D7519071 in C:\akinator_on_tree\main.exe: (anonymous namespace)::TX::_txError() at C:/Users/Grigory/Downloads/TX/TXLib.h:11090
+# 1 0x00007FF6D75267C8 in C:\akinator_on_tree\main.exe: (anonymous namespace)::TX::txSetFillColor() at C:/Users/Grigory/Downloads/TX/TXLib.h:13406
+
+# 2 0x00007FF6D7536EFF in C:\akinator_on_tree\main.exe: show_background() at C:/akinator_on_tree/graphics.cpp:89:
+
+     87:     if (frame_index >= 0 && frame_index < NUMBER_OF_FRAMES && background_frames[frame_index] != NULL)
+     88:     {
+=>   89:         txSetFillColor(TX_BLACK);
+     90:         txClear();
+     91:         txBitBlt(0, 0, background_frames[frame_index]);
+
+# 3 0x00007FF6D753730C in C:\akinator_on_tree\main.exe: animate_question() at C:/akinator_on_tree/graphics.cpp:174:
+
+    172:         for (int i = 0; i < NUMBER_OF_FRAMES; i++)
+    173:         {
+=>  174:             show_background(i);
+    175: 
+    176:             show_text(question_text);
+
+# 4 0x00007FF6D74706EE in C:\akinator_on_tree\main.exe: main() at C:/akinator_on_tree/main.cpp:42:
+
+     40:     else
+     41:     {
+=>   42:         animate_question("Database loaded successfully!");
+     43:         printf("Database loaded successfully! (%zu nodes)\n", tree.size);
+     44:     }
+
+--------------------------------------------------
+Стек вызовов TX:
+
+# 0 in HBRUSH__* {anonymous}::TX::txSetFillColor(COLORREF, HDC) at C:\Users\Grigory\Downloads\TX\TXLib.h:13406:
+
+  13404: HBRUSH txSetFillColor (COLORREF color, HDC dc /*= txDC()*/)
+  13405:     {
+=>13406: $1  if (_TX_DEFAULT_HDC_FAILED (dc)) return NULL;
+  13407: 
+  13408: $   HBRUSH brush = (color == TX_TRANSPARENT)? (HBRUSH) Win32::GetStockObject (HOLLOW_BRUSH) : Win32::CreateSolidBrush (color);
+
+# 1 in void show_background(int) at graphics.cpp:89:
+
+     87:     if (frame_index >= 0 && frame_index < NUMBER_OF_FRAMES && background_frames[frame_index] != NULL)
+     88:     {
+=>   89:         txSetFillColor(TX_BLACK);
+     90:         txClear();
+     91:         txBitBlt(0, 0, background_frames[frame_index]);
+
+--------------------------------------------------
+Developed with:
+
+The Dumb Artist Library (TX Library)
+TXLib [Ver: 00173a, Rev: 174, Date: 2025-08-17 06:00:49 +0400]
+Copyright (C) Ded (Ilya Dedinsky, http://txlib.ru) <mail@txlib.ru>
+See license on: http://txlib.ru
+
+TXLib file:	C:\Users\Grigory\Downloads\TX\TXLib.h
+Compiled:	Nov 19 2025 17:48:34, GNU g++ 13.2.0, std=201103L, MinGW-W64 Runtime 11.0.1 (alpha - rev. 0) 0000-00-00, 64-bit, DEBUG
+Started:	Nov 19 2025 17:49:53
+
+Run file:	C:\akinator_on_tree\main.exe
+Directory:	C:\akinator_on_tree
+
+--------------------------------------------------
+
+--------------------------------------------------
+TXLib соболезнует...
+
+Программа: C:\akinator_on_tree\main.exe, файл: C:\Users\Grigory\Downloads\TX\TXLib.h, строка: 13406, функция: HBRUSH__* {anonymous}::TX::txSetFillColor(COLORREF, HDC),
+
+Сообщение: Окно рисования не создано или не в порядке.
+Если вы указали параметр "dc", то он неверен.
+
+#1: TXLib [Ver: 00173a, Rev: 174, Date: 2025-08-17 06:00:49 +0400], Instance: 0x00007FF6C73538D0 (64-bit), Flags: Cmdre0, Thread: 0x6304 (Main), GetLastError(): 13 (Недопустимые данные). 
+
+--------------------------------------------------
+Стек вызовов:
+
+# 0 0x00007FF6C70B9071 in C:\akinator_on_tree\main.exe: (anonymous namespace)::TX::_txError() at C:/Users/Grigory/Downloads/TX/TXLib.h:11090
+# 1 0x00007FF6C70C67C8 in C:\akinator_on_tree\main.exe: (anonymous namespace)::TX::txSetFillColor() at C:/Users/Grigory/Downloads/TX/TXLib.h:13406
+
+# 2 0x00007FF6C70D6EFF in C:\akinator_on_tree\main.exe: show_background() at C:/akinator_on_tree/graphics.cpp:89:
+
+     87:     if (frame_index >= 0 && frame_index < NUMBER_OF_FRAMES && background_frames[frame_index] != NULL)
+     88:     {
+=>   89:         txSetFillColor(RGB(0, 0, 0));
+     90:         txClear();
+     91:         txBitBlt(0, 0, background_frames[frame_index]);
+
+# 3 0x00007FF6C70D730C in C:\akinator_on_tree\main.exe: animate_question() at C:/akinator_on_tree/graphics.cpp:174:
+
+    172:         for (int i = 0; i < NUMBER_OF_FRAMES; i++)
+    173:         {
+=>  174:             show_background(i);
+    175: 
+    176:             show_text(question_text);
+
+# 4 0x00007FF6C70106EE in C:\akinator_on_tree\main.exe: main() at C:/akinator_on_tree/main.cpp:42:
+
+     40:     else
+     41:     {
+=>   42:         animate_question("Database loaded successfully!");
+     43:         printf("Database loaded successfully! (%zu nodes)\n", tree.size);
+     44:     }
+
+--------------------------------------------------
+Стек вызовов TX:
+
+# 0 in HBRUSH__* {anonymous}::TX::txSetFillColor(COLORREF, HDC) at C:\Users\Grigory\Downloads\TX\TXLib.h:13406:
+
+  13404: HBRUSH txSetFillColor (COLORREF color, HDC dc /*= txDC()*/)
+  13405:     {
+=>13406: $1  if (_TX_DEFAULT_HDC_FAILED (dc)) return NULL;
+  13407: 
+  13408: $   HBRUSH brush = (color == TX_TRANSPARENT)? (HBRUSH) Win32::GetStockObject (HOLLOW_BRUSH) : Win32::CreateSolidBrush (color);
+
+# 1 in void show_background(int) at graphics.cpp:89:
+
+     87:     if (frame_index >= 0 && frame_index < NUMBER_OF_FRAMES && background_frames[frame_index] != NULL)
+     88:     {
+=>   89:         txSetFillColor(RGB(0, 0, 0));
+     90:         txClear();
+     91:         txBitBlt(0, 0, background_frames[frame_index]);
+
+--------------------------------------------------
+Developed with:
+
+The Dumb Artist Library (TX Library)
+TXLib [Ver: 00173a, Rev: 174, Date: 2025-08-17 06:00:49 +0400]
+Copyright (C) Ded (Ilya Dedinsky, http://txlib.ru) <mail@txlib.ru>
+See license on: http://txlib.ru
+
+TXLib file:	C:\Users\Grigory\Downloads\TX\TXLib.h
+Compiled:	Nov 19 2025 17:52:05, GNU g++ 13.2.0, std=201103L, MinGW-W64 Runtime 11.0.1 (alpha - rev. 0) 0000-00-00, 64-bit, DEBUG
+Started:	Nov 19 2025 17:52:09
+
+Run file:	C:\akinator_on_tree\main.exe
+Directory:	C:\akinator_on_tree
+
+--------------------------------------------------
+
+--------------------------------------------------
+TXLib соболезнует...
+
+Программа: C:\akinator_on_tree\main.exe, файл: C:\Users\Grigory\Downloads\TX\TXLib.h, строка: 13406, функция: HBRUSH__* {anonymous}::TX::txSetFillColor(COLORREF, HDC),
+
+Сообщение: Окно рисования не создано или не в порядке.
+Если вы указали параметр "dc", то он неверен.
+
+#1: TXLib [Ver: 00173a, Rev: 174, Date: 2025-08-17 06:00:49 +0400], Instance: 0x00007FF6F4FB38D0 (64-bit), Flags: Cmdre0, Thread: 0x3CCC (Main), GetLastError(): 13 (Недопустимые данные). 
+
+--------------------------------------------------
+Стек вызовов:
+
+# 0 0x00007FF6F4D19071 in C:\akinator_on_tree\main.exe: (anonymous namespace)::TX::_txError() at C:/Users/Grigory/Downloads/TX/TXLib.h:11090
+# 1 0x00007FF6F4D267C8 in C:\akinator_on_tree\main.exe: (anonymous namespace)::TX::txSetFillColor() at C:/Users/Grigory/Downloads/TX/TXLib.h:13406
+
+# 2 0x00007FF6F4D37013 in C:\akinator_on_tree\main.exe: show_background() at C:/akinator_on_tree/graphics.cpp:133:
+
+    131:     if (frame_index >= 0 && frame_index < NUMBER_OF_FRAMES && background_frames[frame_index] != NULL)
+    132:     {
+=>  133:         txSetFillColor(RGB(0, 0, 0));
+    134:         txClear();
+    135:         txBitBlt(0, 0, background_frames[frame_index]);
+
+# 3 0x00007FF6F4D3730C in C:\akinator_on_tree\main.exe: animate_question() at C:/akinator_on_tree/graphics.cpp:174:
+
+    172:         for (int i = 0; i < NUMBER_OF_FRAMES; i++)
+    173:         {
+=>  174:             show_background(i);
+    175: 
+    176:             show_text(question_text);
+
+# 4 0x00007FF6F4C706EE in C:\akinator_on_tree\main.exe: main() at C:/akinator_on_tree/main.cpp:42:
+
+     40:     else
+     41:     {
+=>   42:         animate_question("Database loaded successfully!");
+     43:         printf("Database loaded successfully! (%zu nodes)\n", tree.size);
+     44:     }
+
+--------------------------------------------------
+Стек вызовов TX:
+
+# 0 in HBRUSH__* {anonymous}::TX::txSetFillColor(COLORREF, HDC) at C:\Users\Grigory\Downloads\TX\TXLib.h:13406:
+
+  13404: HBRUSH txSetFillColor (COLORREF color, HDC dc /*= txDC()*/)
+  13405:     {
+=>13406: $1  if (_TX_DEFAULT_HDC_FAILED (dc)) return NULL;
+  13407: 
+  13408: $   HBRUSH brush = (color == TX_TRANSPARENT)? (HBRUSH) Win32::GetStockObject (HOLLOW_BRUSH) : Win32::CreateSolidBrush (color);
+
+# 1 in void show_background(int) at graphics.cpp:133:
+
+    131:     if (frame_index >= 0 && frame_index < NUMBER_OF_FRAMES && background_frames[frame_index] != NULL)
+    132:     {
+=>  133:         txSetFillColor(RGB(0, 0, 0));
+    134:         txClear();
+    135:         txBitBlt(0, 0, background_frames[frame_index]);
+
+--------------------------------------------------
+Developed with:
+
+The Dumb Artist Library (TX Library)
+TXLib [Ver: 00173a, Rev: 174, Date: 2025-08-17 06:00:49 +0400]
+Copyright (C) Ded (Ilya Dedinsky, http://txlib.ru) <mail@txlib.ru>
+See license on: http://txlib.ru
+
+TXLib file:	C:\Users\Grigory\Downloads\TX\TXLib.h
+Compiled:	Nov 19 2025 17:56:48, GNU g++ 13.2.0, std=201103L, MinGW-W64 Runtime 11.0.1 (alpha - rev. 0) 0000-00-00, 64-bit, DEBUG
+Started:	Nov 19 2025 17:56:55
+
+Run file:	C:\akinator_on_tree\main.exe
+Directory:	C:\akinator_on_tree
+
+--------------------------------------------------

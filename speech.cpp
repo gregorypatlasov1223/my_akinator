@@ -1,4 +1,3 @@
-#define TX_USE_SPEAK
 #include <TXLib.h>
 #include <stdio.h>
 #include <string.h>

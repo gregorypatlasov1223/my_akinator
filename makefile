@@ -10,10 +10,10 @@ LIBS = -lole32 -loleaut32 -luuid
 
 all: main.exe
 
-main.exe: main.o tree_tests.o tree.o speech.o graphics.o
-	$(CC) $(FLAGS) main.o tree_tests.o tree.o speech.o graphics.o -o main.exe $(LIBS)
+main.exe: main.o tree_tests.o tree.o speech.o graphics.o akinator_app.o
+	$(CC) $(FLAGS) main.o tree_tests.o tree.o speech.o graphics.o akinator_app.o -o main.exe $(LIBS)
 
-main.o: main.cpp tree.h speech.h graphics.h
+main.o: main.cpp tree.h speech.h graphics.h akinator_app.h
 	$(CC) $(FLAGS) -c main.cpp
 
 tree_tests.o: tree_tests.cpp tree.h speech.h
@@ -28,8 +28,10 @@ speech.o: speech.cpp speech.h
 graphics.o: graphics.cpp graphics.h
 	$(CC) $(FLAGS) -c graphics.cpp
 
+akinator_app.o: akinator_app.cpp akinator_app.h tree.h speech.h graphics.h tree_tests.h tree_error_type.h
+	$(CC) $(FLAGS) -c akinator_app.cpp
+
 clean:
 	rm -rf *.o *.exe
 
-# Правило для перекомпиляции всего
 rebuild: clean all
